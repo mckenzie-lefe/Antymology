@@ -89,6 +89,22 @@ namespace Antymology.Terrain
         private void GenerateAnts()
         {
             throw new NotImplementedException();
+            int numberOfAnts = 10;
+
+            // Loop through the desired number of ants to generate
+            for (int i = 0; i < numberOfAnts; i++)
+            {
+                Vector3 spawnLocation = DetermineSpawnLocation();
+
+                // Instantiate the ant prefab at the determined location
+                // Quaternion.identity means no rotation
+                GameObject ant = Instantiate(antPrefab, spawnLocation, Quaternion.identity);
+
+                // TO DO initialize ant properties or set its parent for organizational purposes ??
+                // ant.transform.SetParent(someParentTransform, false);
+
+                // TO DO setup for the ant can go here (e.g., assigning roles, initial resources, etc.)
+            }
         }
 
         #endregion
@@ -220,6 +236,20 @@ namespace Antymology.Terrain
         #endregion
 
         #region Helpers
+
+        #region Ants
+
+        /// <summary>
+        /// Determines a valid spawn location for an ant
+        /// </summary>
+        private Vector3 DetermineSpawnLocation()
+        {
+            throw new NotImplementedException();
+            // check the terrain type, ensuring the location is not obstructed
+            // Return a Vector3 representing the spawn location
+        }
+
+        #endregion
 
         #region Blocks
 
