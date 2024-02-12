@@ -41,6 +41,11 @@ namespace Antymology.Terrain
         /// </summary>
         private SimplexNoise SimplexNoise;
 
+        /// <summary>
+        /// References to ants in world
+        /// </summary>
+        public Ant[] Ants;
+
         #endregion
 
         #region Initialization
@@ -67,6 +72,8 @@ namespace Antymology.Terrain
                 ConfigurationManager.Instance.World_Diameter,
                 ConfigurationManager.Instance.World_Height,
                 ConfigurationManager.Instance.World_Diameter];
+
+            Ants = new Ant[ConfigurationManager.Instance.Ant_Population];
         }
 
         /// <summary>
@@ -89,11 +96,10 @@ namespace Antymology.Terrain
         private void GenerateAnts()
         {
             GameObject antsParent = new GameObject("Ants");
-            int numberOfAnts = 100;
             List<Vector3> spawnLocations = GetSpawnLocations();
 
             // Loop through the desired number of ants to generate
-            for (int i = 0; i < numberOfAnts; i++)
+            for (int i = 0; i < ConfigurationManager.Instance.Ant_Population; i++)
             {
                 // If no grass tops are found, return a default location or handle this case as appropriate
                 if (spawnLocations.Count == 0)
@@ -107,9 +113,12 @@ namespace Antymology.Terrain
 
                 // Instantiate the ant prefab at the determined location
                 // Quaternion.identity means no rotation
-                GameObject ant = Instantiate(antPrefab, spawnLocations[randomIndex], Quaternion.identity);
-                ant.transform.SetParent(antsParent.transform, false);
+                GameObject antObject = Instantiate(antPrefab, spawnLocations[randomIndex], Quaternion.identity);
+                antObject.transform.SetParent(antsParent.transform, false);
                 spawnLocations.RemoveAt(randomIndex);
+                Ant ant = antObject.GetComponent<Ant>();
+                Ants[i] = ant;
+
 
                 // TO DO initialize ant properties or set its parent for organizational purposes ??
                 // ant.transform.SetParent(someParentTransform, false);

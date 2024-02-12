@@ -369,9 +369,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbd0fdbaf66dc1a4488d999aa299645f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  antPrefab: {fileID: 6533634898091242714, guid: 2257865b571c64440b7cd2afe284510b,
+  antPrefab: {fileID: 1178239252975354886, guid: 2257865b571c64440b7cd2afe284510b,
     type: 3}
   blockMaterial: {fileID: 2100000, guid: 4db9d8fce1a69b74f81daf1375c9ed88, type: 2}
+  Ants: []
 --- !u!4 &964896558
 Transform:
   m_ObjectHideFlags: 0
@@ -408,6 +409,7 @@ MonoBehaviour:
   Acidic_Region_Radius: 5
   Number_Of_Conatiner_Spheres: 5
   Conatiner_Sphere_Radius: 10
+  Ant_Population: 200
 --- !u!850595691 &1600700197
 LightingSettings:
   m_ObjectHideFlags: 0
