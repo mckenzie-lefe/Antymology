@@ -88,17 +88,28 @@ namespace Antymology.Terrain
         /// </summary>
         private void GenerateAnts()
         {
-            throw new NotImplementedException();
-            int numberOfAnts = 10;
+            GameObject antsParent = new GameObject("Ants");
+            int numberOfAnts = 100;
+            List<Vector3> spawnLocations = GetSpawnLocations();
 
             // Loop through the desired number of ants to generate
             for (int i = 0; i < numberOfAnts; i++)
             {
-                Vector3 spawnLocation = DetermineSpawnLocation();
+                // If no grass tops are found, return a default location or handle this case as appropriate
+                if (spawnLocations.Count == 0)
+                {
+                    Debug.LogError("No location found for spawning ants.");
+                    continue;
+                }
+
+                // Select a random index from the list of grass top positions
+                int randomIndex = RNG.Next(spawnLocations.Count);
 
                 // Instantiate the ant prefab at the determined location
                 // Quaternion.identity means no rotation
-                GameObject ant = Instantiate(antPrefab, spawnLocation, Quaternion.identity);
+                GameObject ant = Instantiate(antPrefab, spawnLocations[randomIndex], Quaternion.identity);
+                ant.transform.SetParent(antsParent.transform, false);
+                spawnLocations.RemoveAt(randomIndex);
 
                 // TO DO initialize ant properties or set its parent for organizational purposes ??
                 // ant.transform.SetParent(someParentTransform, false);
@@ -110,6 +121,43 @@ namespace Antymology.Terrain
         #endregion
 
         #region Methods
+
+        /// <summary>
+        /// Finds all topmost blocks that are not container or airblock blocks. i.e. possible spawn locations
+        /// </summary>
+        /// <returns>A list of Vector3 positions for the topmost non-container blocks.</returns>
+        public List<Vector3> GetSpawnLocations()
+        {
+            List<Vector3> topmostBlocks = new List<Vector3>();
+
+            // Iterate over each column in the world.
+            for (int x = 0; x < Blocks.GetLength(0); x++)
+            {
+                for (int z = 0; z < Blocks.GetLength(2); z++)
+                {
+                    // Start from the top of the column and search downwards.
+                    for (int y = Blocks.GetLength(1) - 1; y >= 0; y--)
+                    {
+                        AbstractBlock currentBlock = Blocks[x, y, z];
+
+                        // Check if the current block is not a ContainerBlock OR AirBlock.
+                        if (!(currentBlock is ContainerBlock) && currentBlock.isVisible())
+                        {
+                            // If the block above is an AirBlock, it means we have found the topmost block.
+                            if (y == Blocks.GetLength(1) - 1 || Blocks[x, y + 1, z] is AirBlock)
+                            {
+                                topmostBlocks.Add(new Vector3(x, (float)(y + 0.4), (float)(z + 0.1)));
+                            }
+
+                            // Break the loop after finding the topmost block for this column.
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return topmostBlocks;
+        }
 
         /// <summary>
         /// Retrieves an abstract block type at the desired world coordinates.
@@ -239,16 +287,7 @@ namespace Antymology.Terrain
 
         #region Ants
 
-        /// <summary>
-        /// Determines a valid spawn location for an ant
-        /// </summary>
-        private Vector3 DetermineSpawnLocation()
-        {
-            throw new NotImplementedException();
-            // check the terrain type, ensuring the location is not obstructed
-            // Return a Vector3 representing the spawn location
-        }
-
+        
         #endregion
 
         #region Blocks

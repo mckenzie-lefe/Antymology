@@ -69,3 +69,6 @@ another approach might be to use phermone deposits (I\'ve commented how you coul
 
 ## Submission
 Export your project as a Unity package file. Submit your Unity package file and additional document using the D2L system under the corresponding entry in Assessments/Dropbox. Inlude in the message a link to your git repo where you did your work.
+
+## Ant Model
+https://free3d.com/3d-model/ant-71866.html
