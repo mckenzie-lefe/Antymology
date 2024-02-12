@@ -410,6 +410,8 @@ MonoBehaviour:
   Number_Of_Conatiner_Spheres: 5
   Conatiner_Sphere_Radius: 10
   Ant_Population: 200
+  Starting_Ant_Health: 200
+  Show_Health: 0
 --- !u!850595691 &1600700197
 LightingSettings:
   m_ObjectHideFlags: 0

@@ -8,7 +8,7 @@ public class Ant : MonoBehaviour
     /// <summary>
     /// Ant health measurement
     /// </summary>
-    public float health = 100;
+    public float health;
 
     /// <summary>
     /// 
@@ -42,15 +42,23 @@ public class Ant : MonoBehaviour
 
     private Material queenMaterial;
 
+
     // Start is called before the first frame update
     void Start()
     {
         queenMaterial = (Material)Resources.Load("Materials/QueenAntMaterial", typeof(Material));
 
+        if (isQueen)
+        {
+            InitializeQueen();
+        }
+
         if (!ConfigurationManager.Instance.Show_Health)
         {
             ToggleHealthBarVisibility();
         }
+
+        health = ConfigurationManager.Instance.Starting_Ant_Health;
 
         testStart();
 
@@ -70,13 +78,13 @@ public class Ant : MonoBehaviour
         if (isQueen)
         {
             testMove();
-
         }
 
         // Movement behavior
         if (Time.time >= nextStepTime)
         {
-            MoveToTarget(); 
+            MoveToTarget();
+            health -= 1;
             nextStepTime = Time.time + stepInterval; 
         }
 
@@ -95,38 +103,6 @@ public class Ant : MonoBehaviour
             BuildNest();
         }
 
-
-    }
-
-    // Call this method to toggle the visibility of the health bar
-    public void ToggleHealthBarVisibility()
-    {
-        // Assuming 'HealthBar' is the name of the child GameObject with the health bar
-        GameObject healthBar = transform.Find("HealthBar").gameObject;
-
-        if (healthBar != null)
-        {
-            // Toggle the active state of the health bar
-            healthBar.SetActive(!healthBar.activeSelf);
-        }
-        else
-        {
-            Debug.LogError("HealthBar object not found");
-        }
-    }
-
-    public void InitializeQueen()
-    {
-        MeshRenderer meshRenderer = transform.Find("ant_blk").GetComponent<MeshRenderer>();
-        if (meshRenderer != null)
-        {
-            // Set the material of the MeshRenderer to the new material
-            meshRenderer.material = queenMaterial;
-        }
-        else
-        {
-            Debug.LogError("MeshRenderer component not found on 'ant_blk'");
-        }
     }
 
     void testStart()
@@ -147,6 +123,9 @@ public class Ant : MonoBehaviour
 
     public void testMove()
     {
+
+        
+
         Dictionary<string, Vector3> movablePositions = FindMovableAdjacentBlocks();
         if (Input.GetKeyDown(KeyCode.F))
         {
@@ -173,7 +152,7 @@ public class Ant : MonoBehaviour
         }
     }
 
-    void MoveToTarget()
+    private void MoveToTarget()
     {
         Dictionary<string, Vector3> movablePositions = FindMovableAdjacentBlocks();
         if (movablePositions.Count > 0)
@@ -187,9 +166,7 @@ public class Ant : MonoBehaviour
 
     void ConsumeResourcesIfNeeded()
     {
-        // if near resource
-        // consume resource
-        // replenish health or carry resource
+       
     }
 
     void ManageHealth()
@@ -220,11 +197,6 @@ public class Ant : MonoBehaviour
         }
     }
 
-    // Method for ant to receive health from another ant
-    public void ReceiveHealth(float amount)
-    {
-        this.health += amount;
-    }
 
     AbstractBlock GetBlockBelow()
     {
@@ -232,7 +204,50 @@ public class Ant : MonoBehaviour
     }
 
 
-    Dictionary<string, Vector3> FindMovableAdjacentBlocks()
+    #region Methods
+
+    public void InitializeQueen()
+    {
+        MeshRenderer meshRenderer = transform.Find("ant_blk").GetComponent<MeshRenderer>();
+        if (meshRenderer != null)
+        {
+            meshRenderer.material = queenMaterial;
+            Debug.Log("QUEEN");
+        }
+        else
+        {
+            Debug.LogError("MeshRenderer component not found on 'ant_blk'");
+        }
+    }
+
+    // Method for ant to receive health from another ant
+    public void ReceiveHealth(float amount)
+    {
+        this.health += amount;
+    }
+
+    #endregion
+
+    #region Helpers
+
+    /// <summary>
+    /// Toggle the visibility of the ants health bar
+    /// </summary>
+    private void ToggleHealthBarVisibility()
+    {
+        GameObject healthBar = transform.Find("HealthBar").gameObject;
+
+        if (healthBar != null)
+        {
+            healthBar.SetActive(!healthBar.activeSelf);
+        }
+        else
+        {
+            Debug.LogError("HealthBar object not found");
+        }
+    }
+
+    private Dictionary<string, Vector3> FindMovableAdjacentBlocks()
     {
         Dictionary<string, Vector3> movableBlocks = new Dictionary<string, Vector3>();
         Vector3 currentPosition = transform.position;
@@ -272,4 +287,7 @@ public class Ant : MonoBehaviour
 
         return movableBlocks;
     }
+
+    #endregion
+
 }

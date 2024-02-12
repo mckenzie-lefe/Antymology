@@ -97,35 +97,22 @@ namespace Antymology.Terrain
         {
             GameObject antsParent = new GameObject("Ants");
             List<Vector3> spawnLocations = GetSpawnLocations();
-            int randomIndex = RNG.Next(spawnLocations.Count);
-            GameObject queen = Instantiate(antPrefab, spawnLocations[randomIndex], Quaternion.identity);
-            Ant q = queen.GetComponent<Ant>();
-            q.isQueen = true;
-            // Loop through the desired number of ants to generate
-            for (int i = 0; i < ConfigurationManager.Instance.Ant_Population; i++)
+
+            // Create Queen
+            SpawnAnt(spawnLocations, antsParent, true);
+            //SpawnAnt(spawnLocations, antsParent, true);
+
+            // Loop through the desired number of ants to generate 
+            for (int i = 0; i < ConfigurationManager.Instance.Ant_Population - 1; i++)
             {
-                // If no grass tops are found, return a default location or handle this case as appropriate
                 if (spawnLocations.Count == 0)
                 {
                     Debug.LogError("No location found for spawning ants.");
                     continue;
                 }
 
-                // Select a random index from the list of grass top positions
-                randomIndex = RNG.Next(spawnLocations.Count);
+                SpawnAnt(spawnLocations, antsParent);
 
-                // Instantiate the ant prefab at the determined location
-                // Quaternion.identity means no rotation
-                GameObject antObject = Instantiate(antPrefab, spawnLocations[randomIndex], Quaternion.identity);
-                antObject.transform.SetParent(antsParent.transform, false);
-                spawnLocations.RemoveAt(randomIndex);
-                Ant ant = antObject.GetComponent<Ant>();
-
-                if (!showHealth)
-                {
-                    ant.ToggleHealthBarVisibility();
-                }
-                
                 // TO DO initialize ant properties or set its parent for organizational purposes ??
                 // ant.transform.SetParent(someParentTransform, false);
 
@@ -133,16 +120,25 @@ namespace Antymology.Terrain
             }
         }
 
-        private void GenerateQueenAnt()
+        private void SpawnAnt(List<Vector3> locations, GameObject antsParent, bool isQueen = false)
         {
-            List<Vector3> spawnLocations = GetSpawnLocations();
-            int randomIndex = RNG.Next(spawnLocations.Count);
-            GameObject queen = Instantiate(antPrefab, spawnLocations[randomIndex], Quaternion.identity);
-            Ant queen.GetComponent<Ant>();
-            if (!showHealth)
+            // Select a random index from the list of grass top positions
+            int randomIndex = RNG.Next(locations.Count);
+
+            // Instantiate the ant prefab at the determined location
+            GameObject antObject = Instantiate(antPrefab, locations[randomIndex], Quaternion.identity) as GameObject;
+            if (isQueen)
             {
-                queen.ToggleHealthBarVisibility();
+                
+                Ant queen = antObject.GetComponent<Ant>();
+                queen.isQueen = true;
+                antObject.name = "Queen";
+            } else
+            {
+               // GameObject antObject = Instantiate(antPrefab, locations[randomIndex], Quaternion.identity);
+                antObject.transform.SetParent(antsParent.transform, false);
             }
+            locations.RemoveAt(randomIndex);
         }
 
 
