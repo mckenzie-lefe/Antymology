@@ -97,7 +97,10 @@ namespace Antymology.Terrain
         {
             GameObject antsParent = new GameObject("Ants");
             List<Vector3> spawnLocations = GetSpawnLocations();
-
+            int randomIndex = RNG.Next(spawnLocations.Count);
+            GameObject queen = Instantiate(antPrefab, spawnLocations[randomIndex], Quaternion.identity);
+            Ant q = queen.GetComponent<Ant>();
+            q.isQueen = true;
             // Loop through the desired number of ants to generate
             for (int i = 0; i < ConfigurationManager.Instance.Ant_Population; i++)
             {
@@ -109,7 +112,7 @@ namespace Antymology.Terrain
                 }
 
                 // Select a random index from the list of grass top positions
-                int randomIndex = RNG.Next(spawnLocations.Count);
+                randomIndex = RNG.Next(spawnLocations.Count);
 
                 // Instantiate the ant prefab at the determined location
                 // Quaternion.identity means no rotation
@@ -117,15 +120,31 @@ namespace Antymology.Terrain
                 antObject.transform.SetParent(antsParent.transform, false);
                 spawnLocations.RemoveAt(randomIndex);
                 Ant ant = antObject.GetComponent<Ant>();
-                Ants[i] = ant;
 
-
+                if (!showHealth)
+                {
+                    ant.ToggleHealthBarVisibility();
+                }
+                
                 // TO DO initialize ant properties or set its parent for organizational purposes ??
                 // ant.transform.SetParent(someParentTransform, false);
 
                 // TO DO setup for the ant can go here (e.g., assigning roles, initial resources, etc.)
             }
         }
+
+        private void GenerateQueenAnt()
+        {
+            List<Vector3> spawnLocations = GetSpawnLocations();
+            int randomIndex = RNG.Next(spawnLocations.Count);
+            GameObject queen = Instantiate(antPrefab, spawnLocations[randomIndex], Quaternion.identity);
+            Ant queen.GetComponent<Ant>();
+            if (!showHealth)
+            {
+                queen.ToggleHealthBarVisibility();
+            }
+        }
+
 
         #endregion
 

@@ -54,4 +54,9 @@ public class ConfigurationManager : Singleton<ConfigurationManager>
     /// The starting population of ants
     /// </summary>
     public int Ant_Population = 200;
+
+    /// <summary>
+    /// Show ants health bars
+    /// </summary>
+    public bool Show_Health = false;
 }

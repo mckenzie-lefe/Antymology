@@ -1,7 +1,6 @@
 using Antymology.Terrain;
-using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Ant : MonoBehaviour
@@ -26,18 +25,35 @@ public class Ant : MonoBehaviour
     /// </summary>
     public bool isQueen = false;
 
-    private float moveInterval = 2.0f; // Seconds between moves
-    private float nextMoveTime = 0.0f;
+    /// <summary>
+    /// Seconds between ant steps 
+    /// </summary>
+    private float stepInterval = 1.0f;
+
+    /// <summary>
+    /// Time of next ant step
+    /// </summary>
+    private float nextStepTime = 0.0f;
+
     /// <summary>
     /// 
     /// </summary>
     private float maxHealth;
 
+    private Material queenMaterial;
+
     // Start is called before the first frame update
     void Start()
     {
-        // Initialize ant
-        InitializeAnt();
+        queenMaterial = (Material)Resources.Load("Materials/QueenAntMaterial", typeof(Material));
+
+        if (!ConfigurationManager.Instance.Show_Health)
+        {
+            ToggleHealthBarVisibility();
+        }
+
+        testStart();
+
     }
 
     // Update is called once per frame
@@ -46,16 +62,22 @@ public class Ant : MonoBehaviour
  
         if (health <= 0)
         {
-            //Destroy(gameObject);
             Debug.Log("health bad");
+            Destroy(gameObject);
             return;
         }
 
-        // Movement behavior
-        if (Time.time >= nextMoveTime)
+        if (isQueen)
         {
-            MoveToTarget(); // Call your movement method here
-            nextMoveTime = Time.time + moveInterval; // Set the next move time
+            testMove();
+
+        }
+
+        // Movement behavior
+        if (Time.time >= nextStepTime)
+        {
+            MoveToTarget(); 
+            nextStepTime = Time.time + stepInterval; 
         }
 
         // Check for resource consumption
@@ -76,21 +98,89 @@ public class Ant : MonoBehaviour
 
     }
 
-    void InitializeAnt()
+    // Call this method to toggle the visibility of the health bar
+    public void ToggleHealthBarVisibility()
     {
-        Debug.Log("init");
+        // Assuming 'HealthBar' is the name of the child GameObject with the health bar
+        GameObject healthBar = transform.Find("HealthBar").gameObject;
+
+        if (healthBar != null)
+        {
+            // Toggle the active state of the health bar
+            healthBar.SetActive(!healthBar.activeSelf);
+        }
+        else
+        {
+            Debug.LogError("HealthBar object not found");
+        }
     }
 
+    public void InitializeQueen()
+    {
+        MeshRenderer meshRenderer = transform.Find("ant_blk").GetComponent<MeshRenderer>();
+        if (meshRenderer != null)
+        {
+            // Set the material of the MeshRenderer to the new material
+            meshRenderer.material = queenMaterial;
+        }
+        else
+        {
+            Debug.LogError("MeshRenderer component not found on 'ant_blk'");
+        }
+    }
 
+    void testStart()
+    {
+        if (isQueen)
+        {
+            
+
+            transform.position = new Vector3(50, 21.4f, 59.1f);
+            Dictionary<string, Vector3> movablePositions = FindMovableAdjacentBlocks();
+            foreach (var p in movablePositions)
+            {
+                Debug.Log(p.Key + ": " + p.Value.x + ", " + p.Value.x + ", " + p.Value.z);
+
+            }
+        }
+    }
+
+    public void testMove()
+    {
+        Dictionary<string, Vector3> movablePositions = FindMovableAdjacentBlocks();
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            transform.position = movablePositions["F"];
+            Debug.Log("Moved to Forward");
+        }
+
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            transform.position = movablePositions["B"];
+            Debug.Log("Moved to BAckward");
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            transform.position = movablePositions["RD"];
+            Debug.Log("Moved to Right down");
+        }
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            transform.position = movablePositions["LU"];
+            Debug.Log("Moved to Left up");
+        }
+    }
 
     void MoveToTarget()
     {
-        List<Vector3> movablePositions = FindMovableAdjacentBlocks();
+        Dictionary<string, Vector3> movablePositions = FindMovableAdjacentBlocks();
         if (movablePositions.Count > 0)
         {
             int randomIndex = UnityEngine.Random.Range(0, movablePositions.Count);
            
-            transform.position = movablePositions[randomIndex];
+            transform.position = movablePositions.Values.ElementAt(randomIndex);
         }
     }
     
@@ -142,40 +232,40 @@ public class Ant : MonoBehaviour
     }
 
 
-    List<Vector3> FindMovableAdjacentBlocks()
+    Dictionary<string, Vector3> FindMovableAdjacentBlocks()
     {
-        List<Vector3> movableBlocks = new List<Vector3>();
+        Dictionary<string, Vector3> movableBlocks = new Dictionary<string, Vector3>();
         Vector3 currentPosition = transform.position;
 
         // Define relative positions for adjacent blocks
-        Vector3[] adjacentPositions = new Vector3[]
+        var adjacentPositions = new List<(string, Vector3)>
         {
-            new Vector3(1, 0, 0), // Right
-            new Vector3(-1, 0, 0), // Left
-            new Vector3(0, 0, 1), // Forward
-            new Vector3(0, 0, -1), // Backward
-            new Vector3(1, 1, 0), // Right, Up
-            new Vector3(-1, 1, 0), // Left, Up
-            new Vector3(0, 1, 1), // Forward. Up
-            new Vector3(0, 1, -1), // Backward, Up
-            new Vector3(1, -1, 0), // Right, Down
-            new Vector3(-1, -1, 0), // Left, Down
-            new Vector3(0, -1, 1), // Forward, Down
-            new Vector3(0, -1, -1), // Backward, Down
+            ("R", new Vector3(1, 0, 0)), // Right
+            ("L", new Vector3(-1, 0, 0)), // Left
+            ("F", new Vector3(0, 0, 1)), // Forward
+            ("B", new Vector3(0, 0, -1)), // Backward
+            ("RU", new Vector3(1, 1, 0)), // Right, Up
+            ("LU", new Vector3(-1, 1, 0)), // Left, Up
+            ("FU", new Vector3(0, 1, 1)), // Forward. Up
+            ("BU", new Vector3(0, 1, -1)), // Backward, Up
+            ("RD", new Vector3(1, -1, 0)), // Right, Down
+            ("LD", new Vector3(-1, -1, 0)), // Left, Down
+            ("FD", new Vector3(0, -1, 1)), // Forward, Down
+            ("BD", new Vector3(0, -1, -1)) // Backward, Down
         };
 
         foreach (var relativePos in adjacentPositions)
         {
-            Vector3 checkPos = currentPosition + relativePos;
-
-            // Ensure the block to move to is an AirBlock
-            if (WorldManager.Instance.GetBlock((int)checkPos.x, (int)checkPos.y, (int)checkPos.z) is AirBlock)
+            Vector3 checkPos = currentPosition + relativePos.Item2;
+            AbstractBlock block = WorldManager.Instance.GetBlock((int)checkPos.x, (int)checkPos.y, (int)checkPos.z);
+            // Ensure the block to move to is not an AirBlock or ContainerBlock
+            if (!(block is AirBlock) && !(block is ContainerBlock))
             {
-                // Ensure the block directly below is not an AirBlock or ContainerBlock
-                AbstractBlock blockBelow = WorldManager.Instance.GetBlock((int)checkPos.x, (int)checkPos.y - 1, (int)checkPos.z);
-                if (!(blockBelow is AirBlock) && !(blockBelow is ContainerBlock))
+                // Ensure the block directly above is an AirBlock 
+                AbstractBlock blockAbove = WorldManager.Instance.GetBlock((int)checkPos.x, (int)checkPos.y + 1, (int)checkPos.z);
+                if (WorldManager.Instance.GetBlock((int)checkPos.x, (int)checkPos.y + 1, (int)checkPos.z) is AirBlock)
                 {
-                    movableBlocks.Add(checkPos);
+                    movableBlocks.Add(relativePos.Item1, checkPos);
                 }
             }
         }
