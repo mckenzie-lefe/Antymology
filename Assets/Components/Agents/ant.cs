@@ -41,11 +41,17 @@ public class Ant : MonoBehaviour
 
     private Material queenMaterial;
 
+    private Material weakHealthMaterial;
+
+    private Material strongHealthMaterial;
+
 
     // Start is called before the first frame update
     void Start()
     {
         queenMaterial = (Material)Resources.Load("Materials/QueenAntMaterial", typeof(Material));
+        weakHealthMaterial = (Material)Resources.Load("Materials/WeakHealthMaterial", typeof(Material));
+        strongHealthMaterial = (Material)Resources.Load("Materials/StrongHealthMaterial", typeof(Material));
 
         if (isQueen)
         {
@@ -86,12 +92,14 @@ public class Ant : MonoBehaviour
         if (Time.time >= nextStepTime)
         {
             MoveToTarget();
+            
+            // Check for resource consumption
+            ConsumeResourcesIfNeeded();
             ManageHealth();
             nextStepTime = Time.time + stepInterval; 
         }
 
-        // Check for resource consumption
-        ConsumeResourcesIfNeeded();
+        
 
         // Check for digging ability
         //DigIfNeeded();
@@ -291,13 +299,48 @@ public class Ant : MonoBehaviour
     {
         if (GetBlockBelow() is AcidicBlock)
         {
-            health -= healthReduction;
+            health -= (healthReduction * 2);
         }
         else
         {
-            health -= (healthReduction * 2);
+            health -= healthReduction;
         }
 
+        
+
+        if (ConfigurationManager.Instance.Show_Health)
+        {
+            int bars = (int)System.Math.Round(health / (maxHealth / 7));
+
+            foreach (int bar in Enumerable.Range(1, 7))
+            {
+                GameObject healthBar = transform.Find("HealthBar").gameObject.transform.Find("Bar" + bar.ToString()).gameObject;
+                if(healthBar != null)
+                {
+                    MeshRenderer meshRenderer = healthBar.GetComponent<MeshRenderer>();
+                    if (meshRenderer != null) 
+                    {
+                        if (health <= healthThreshold && meshRenderer.material != weakHealthMaterial)
+                            meshRenderer.material = weakHealthMaterial;
+
+                        else if (health > healthThreshold && meshRenderer.material != strongHealthMaterial)
+                            meshRenderer.material = strongHealthMaterial;
+
+                    }
+
+                    if (bar <= bars)
+                        healthBar.SetActive(true);
+                    else
+                        healthBar.SetActive(false);
+
+                } 
+                else
+                {
+                    Debug.Log("nO BAR object");
+                }
+                
+            }
+        }
         // if health below threshold, seek food
     }
 
