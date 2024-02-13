@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Antymology.Terrain
@@ -44,7 +45,7 @@ namespace Antymology.Terrain
         /// <summary>
         /// References to ants in world
         /// </summary>
-        public Ant[] Ants;
+        public List<Ant> Ants;
 
         #endregion
 
@@ -73,7 +74,7 @@ namespace Antymology.Terrain
                 ConfigurationManager.Instance.World_Height,
                 ConfigurationManager.Instance.World_Diameter];
 
-            Ants = new Ant[ConfigurationManager.Instance.Ant_Population];
+            Ants = new List<Ant>();
         }
 
         /// <summary>
@@ -88,6 +89,95 @@ namespace Antymology.Terrain
             Camera.main.transform.LookAt(new Vector3(Blocks.GetLength(0), 0, Blocks.GetLength(2)));
 
             GenerateAnts();
+            StartCoroutine(TimeStepUpdate());
+        }
+
+
+        private IEnumerator TimeStepUpdate()
+        {
+            while (true)
+            {
+                // Wait for one second
+                yield return new WaitForSeconds(1);
+                UpdateAnts();
+                UpdatePhermones();
+                
+
+            }
+
+                
+        }
+
+        private void UpdatePhermones()
+        {
+            // Iterate through all blocks in the world
+            for (int x = 0; x < Blocks.GetLength(0); x++)
+            {
+                for (int y = 0; y < Blocks.GetLength(1); y++)
+                {
+                    for (int z = 0; z < Blocks.GetLength(2); z++)
+                    {
+                        // Check if the block is an AirBlock
+                        AirBlock airBlock = Blocks[x, y, z] as AirBlock;
+                        if (airBlock != null)
+                        {
+                            AirBlock[] neighbours = GetNeighbouringAirBlocks(x, y, z);
+
+                            airBlock.Diffuse(neighbours);
+                            airBlock.Evaporate();
+                        }
+                        //Debug.Log("ab=" + airBlock.phermoneDeposits[1]);
+                    }
+                }
+            }
+        }
+
+        private void UpdateAnts()
+        {
+            Ants.RemoveAll(item => item == null);
+            foreach (var ant in Ants)
+            { 
+                ant.UpdateAnt();
+            }
+                   
+        }
+
+
+        // Example method to get neighboring AirBlocks (you will need to implement this logic)
+        AirBlock[] GetNeighbouringAirBlocks(int x, int y, int z)
+        {
+            List<AirBlock> neighbours = new List<AirBlock>();
+
+            // Iterate through all neighboring positions including diagonals in 3D
+            for (int offsetX = -1; offsetX <= 1; offsetX++)
+            {
+                for (int offsetY = -1; offsetY <= 1; offsetY++)
+                {
+                    for (int offsetZ = -1; offsetZ <= 1; offsetZ++)
+                    {
+                        // Skip the current block (no offset)
+                        if (offsetX == 0 && offsetY == 0 && offsetZ == 0) continue;
+
+                        int neighbourX = x + offsetX;
+                        int neighbourY = y + offsetY;
+                        int neighbourZ = z + offsetZ;
+
+                        // Check bounds to ensure indices are within the world array
+                        if (neighbourX >= 0 && neighbourX < Blocks.GetLength(0) &&
+                            neighbourY >= 0 && neighbourY < Blocks.GetLength(1) &&
+                            neighbourZ >= 0 && neighbourZ < Blocks.GetLength(2))
+                        {
+                            AirBlock neighbour = Blocks[neighbourX, neighbourY, neighbourZ] as AirBlock;
+                            if (neighbour != null)
+                            {
+                                neighbours.Add(neighbour);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return neighbours.ToArray();
         }
 
         /// <summary>
@@ -136,6 +226,7 @@ namespace Antymology.Terrain
                 antObject.transform.SetParent(antsParent.transform, false);
             }
             locations.RemoveAt(randomIndex);
+            Ants.Add(antObject.GetComponent<Ant>());
         }
 
 
@@ -375,6 +466,8 @@ namespace Antymology.Terrain
         /// <summary>
         /// Alters a pre-generated map so that acid blocks exist.
         /// </summary>
+
+
         private void GenerateAcidicRegions()
         {
             for (int i = 0; i < ConfigurationManager.Instance.Number_Of_Acidic_Regions; i++)

@@ -88,18 +88,16 @@ public class Ant : MonoBehaviour
             testMove();
         }
 
-        // Movement behavior
-        if (Time.time >= nextStepTime)
-        {
-            MoveToTarget();
+        //// Movement behavior
+        //if (Time.time >= nextStepTime)
+        //{
+        //    MoveToTarget();
             
-            // Check for resource consumption
-            ConsumeResourcesIfNeeded();
-            ManageHealth();
-            nextStepTime = Time.time + stepInterval; 
-        }
-
-        
+        //    // Check for resource consumption
+        //    ConsumeResourcesIfNeeded();
+        //    ManageHealth();
+        //    nextStepTime = Time.time + stepInterval; 
+        //}
 
         // Check for digging ability
         //DigIfNeeded();
@@ -111,6 +109,28 @@ public class Ant : MonoBehaviour
         }
 
     }
+
+    public void UpdateAnt()
+    {
+        Debug.Log("update ant");
+        MoveToTarget();
+
+        // Check for resource consumption
+        ConsumeResourcesIfNeeded();
+        ManageHealth();
+        DepositePheramone();
+    }
+
+    void DepositePheramone()
+    {
+        AbstractBlock curr = WorldManager.Instance.GetBlock((int)transform.position.x, (int)transform.position.y + 1, (int)transform.position.z);
+        if (curr is not AirBlock)
+        {
+            Debug.LogError("Not AirBlock ????");
+        }
+        ((AirBlock)curr).Deposit(1, 1);
+    }
+
 
     void testStart()
     {

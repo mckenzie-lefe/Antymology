@@ -24,7 +24,7 @@ namespace Antymology.Terrain
         /// A dictionary representing the phermone deposits in the air. Each type of phermone gets it's own byte key, and each phermone type has a concentration.
         /// THIS CURRENTLY ONLY EXISTS AS A WAY OF SHOWING YOU HOW YOU CAN MANIPULATE THE BLOCKS.
         /// </summary>
-        private Dictionary<byte, double> phermoneDeposits;
+        public Dictionary<byte, double> phermoneDeposits = new Dictionary<byte, double>();
 
         #endregion
 
@@ -47,12 +47,34 @@ namespace Antymology.Terrain
         }
 
         /// <summary>
-        /// THIS CURRENTLY ONLY EXISTS AS A WAY OF SHOWING YOU WHATS POSSIBLE.
+        /// 
         /// </summary>
         /// <param name="neighbours"></param>
         public void Diffuse(AbstractBlock[] neighbours)
         {
             throw new NotImplementedException();
+        }
+
+        public void Deposit(byte pheromoneType, double amount)
+        {
+            if (phermoneDeposits.ContainsKey(pheromoneType))
+            {
+                phermoneDeposits[pheromoneType] += amount;
+            }
+            else
+            {
+                phermoneDeposits.Add(pheromoneType, amount);
+            }
+
+        }
+
+        public void Evaporate()
+        {
+            List<byte> keys = new List<byte>(phermoneDeposits.Keys);
+            foreach (byte key in keys)
+            {
+                phermoneDeposits[key] *= (1 - ConfigurationManager.Instance.Phermone_Evaperation_Rate); 
+            }
         }
 
         #endregion

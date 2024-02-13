@@ -74,4 +74,10 @@ public class ConfigurationManager : Singleton<ConfigurationManager>
     /// Show ants health bars
     /// </summary>
     public bool Show_Health = false;
+
+
+    /// <summary>
+    /// Rate that phermones evaperated from airblocks each step
+    /// </summary>
+    public double Phermone_Evaperation_Rate = 0.5;
 }
