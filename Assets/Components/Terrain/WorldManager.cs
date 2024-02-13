@@ -47,6 +47,8 @@ namespace Antymology.Terrain
         /// </summary>
         public List<Ant> Ants;
 
+        public Ant Queen;
+
         #endregion
 
         #region Initialization
@@ -103,9 +105,7 @@ namespace Antymology.Terrain
                 UpdatePhermones();
                 
 
-            }
-
-                
+            }      
         }
 
         private void UpdatePhermones()
@@ -123,14 +123,18 @@ namespace Antymology.Terrain
                         {
                             AirBlock[] neighbours = GetNeighbouringAirBlocks(x, y, z);
 
-                            airBlock.Diffuse(neighbours);
+                            airBlock.DiffuseFoodPheromone(neighbours);
                             airBlock.Evaporate();
+
+                            float distance = Vector3.Distance(Queen.transform.position, new Vector3(x, y, z));
+                            airBlock.SetQueenScent((int) (100.0 / (1 + distance)));
                         }
-                        //Debug.Log("ab=" + airBlock.phermoneDeposits[1]);
+                        
                     }
                 }
             }
         }
+
 
         private void UpdateAnts()
         {
@@ -218,9 +222,10 @@ namespace Antymology.Terrain
             GameObject antObject = Instantiate(antPrefab, locations[randomIndex], Quaternion.identity) as GameObject;
             if (isQueen)
             {
-                Ant queen = antObject.GetComponent<Ant>();
-                queen.isQueen = true;
+                Queen = antObject.GetComponent<Ant>();
+                Queen.isQueen = true;
                 antObject.name = "Queen";
+
             } else
             {
                 antObject.transform.SetParent(antsParent.transform, false);

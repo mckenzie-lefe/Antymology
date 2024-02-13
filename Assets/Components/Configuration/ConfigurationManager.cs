@@ -77,7 +77,7 @@ public class ConfigurationManager : Singleton<ConfigurationManager>
 
 
     /// <summary>
-    /// Rate that phermones evaperated from airblocks each step
+    /// Rate that pheromones evaperated from airblocks each step
     /// </summary>
-    public double Phermone_Evaperation_Rate = 0.5;
+    public double Pheromone_Evaperation_Rate = 0.5;
 }

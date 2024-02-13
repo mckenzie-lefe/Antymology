@@ -112,7 +112,6 @@ public class Ant : MonoBehaviour
 
     public void UpdateAnt()
     {
-        Debug.Log("update ant");
         MoveToTarget();
 
         // Check for resource consumption
@@ -123,6 +122,7 @@ public class Ant : MonoBehaviour
 
     void DepositePheramone()
     {
+        // Get AirBlock directly above
         AbstractBlock curr = WorldManager.Instance.GetBlock((int)transform.position.x, (int)transform.position.y + 1, (int)transform.position.z);
         if (curr is not AirBlock)
         {
