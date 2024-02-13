@@ -13,11 +13,6 @@ public class Ant : MonoBehaviour
     /// <summary>
     /// 
     /// </summary>
-    public float moveSpeed = 5;
-
-    /// <summary>
-    /// 
-    /// </summary>
     private Vector3 targetPosition;
 
     /// <summary>
@@ -40,6 +35,10 @@ public class Ant : MonoBehaviour
     /// </summary>
     private float maxHealth;
 
+    private float healthReduction;
+
+    private float healthThreshold;
+
     private Material queenMaterial;
 
 
@@ -58,7 +57,10 @@ public class Ant : MonoBehaviour
             ToggleHealthBarVisibility();
         }
 
+        maxHealth = ConfigurationManager.Instance.Max_Ant_Health;
         health = ConfigurationManager.Instance.Starting_Ant_Health;
+        healthReduction = ConfigurationManager.Instance.Step_Health_Reduction;
+        healthThreshold = maxHealth / 3;
 
         testStart();
 
@@ -84,18 +86,15 @@ public class Ant : MonoBehaviour
         if (Time.time >= nextStepTime)
         {
             MoveToTarget();
-            health -= 1;
+            ManageHealth();
             nextStepTime = Time.time + stepInterval; 
         }
 
         // Check for resource consumption
         ConsumeResourcesIfNeeded();
 
-        // Health management
-        ManageHealth();
-
         // Check for digging ability
-        DigIfNeeded();
+        //DigIfNeeded();
 
         // Check for queen's nest building
         if (isQueen)
@@ -109,8 +108,6 @@ public class Ant : MonoBehaviour
     {
         if (isQueen)
         {
-            
-
             transform.position = new Vector3(50, 21.4f, 59.1f);
             Dictionary<string, Vector3> movablePositions = FindMovableAdjacentBlocks();
             foreach (var p in movablePositions)
@@ -123,9 +120,6 @@ public class Ant : MonoBehaviour
 
     public void testMove()
     {
-
-        
-
         Dictionary<string, Vector3> movablePositions = FindMovableAdjacentBlocks();
         if (Input.GetKeyDown(KeyCode.F))
         {
@@ -162,21 +156,22 @@ public class Ant : MonoBehaviour
             transform.position = movablePositions.Values.ElementAt(randomIndex);
         }
     }
-    
 
     void ConsumeResourcesIfNeeded()
     {
-       
-    }
-
-    void ManageHealth()
-    {
-        // decrease health over time
-        // if health below threshold, seek food
+        if(GetBlockBelow() is MulchBlock && health <= healthThreshold)
+        {
+            RemoveBlockBelow();
+            health += 1;
+        }
     }
 
     void DigIfNeeded()
     {
+        if(GetBlockBelow() is not ContainerBlock)
+        {
+            RemoveBlockBelow();
+        }
         // Implement logic to dig up the world here
         // Check for the block type beneath and remove it if it's diggable
     }
@@ -186,23 +181,6 @@ public class Ant : MonoBehaviour
         // Implement logic for the queen ant to build a nest here
         // Reduce health by a third and create a nest block
     }
-
-    // Method for ant to give health to another ant
-    public void GiveHealth(Ant recipient, float amount)
-    {
-        if (this.health > amount)
-        {
-            this.health -= amount;
-            recipient.ReceiveHealth(amount);
-        }
-    }
-
-
-    AbstractBlock GetBlockBelow()
-    {
-        return WorldManager.Instance.GetBlock((int)transform.position.x, (int)transform.position.y - 1, (int)transform.position.z);
-    }
-
 
     #region Methods
 
@@ -217,6 +195,16 @@ public class Ant : MonoBehaviour
         else
         {
             Debug.LogError("MeshRenderer component not found on 'ant_blk'");
+        }
+    }
+
+    // Method for ant to give health to another ant
+    public void GiveHealth(Ant recipient, float amount)
+    {
+        if (this.health > amount)
+        {
+            this.health -= amount;
+            recipient.ReceiveHealth(amount);
         }
     }
 
@@ -245,6 +233,17 @@ public class Ant : MonoBehaviour
         {
             Debug.LogError("HealthBar object not found");
         }
+    }
+
+    private AbstractBlock GetBlockBelow()
+    {
+        return WorldManager.Instance.GetBlock((int)transform.position.x, (int)transform.position.y - 1, (int)transform.position.z);
+    }
+
+    private void RemoveBlockBelow()
+    {
+        WorldManager.Instance.SetBlock((int)transform.position.x, (int)transform.position.y - 1, (int)transform.position.z, new AirBlock());
+        transform.position = new Vector3(transform.position.x, transform.position.y - 1, transform.position.z);
     }
 
     private Dictionary<string, Vector3> FindMovableAdjacentBlocks()
@@ -286,6 +285,20 @@ public class Ant : MonoBehaviour
         }
 
         return movableBlocks;
+    }
+
+    private void ManageHealth()
+    {
+        if (GetBlockBelow() is AcidicBlock)
+        {
+            health -= healthReduction;
+        }
+        else
+        {
+            health -= (healthReduction * 2);
+        }
+
+        // if health below threshold, seek food
     }
 
     #endregion

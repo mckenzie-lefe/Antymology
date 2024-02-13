@@ -61,6 +61,16 @@ public class ConfigurationManager : Singleton<ConfigurationManager>
     public int Starting_Ant_Health = 200;
 
     /// <summary>
+    /// Ants starting health measure
+    /// </summary>
+    public int Max_Ant_Health = 200;
+
+    /// <summary>
+    /// Ants starting health measure
+    /// </summary>
+    public int Step_Health_Reduction = 1;
+
+    /// <summary>
     /// Show ants health bars
     /// </summary>
     public bool Show_Health = false;

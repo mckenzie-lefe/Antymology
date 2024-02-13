@@ -100,7 +100,6 @@ namespace Antymology.Terrain
 
             // Create Queen
             SpawnAnt(spawnLocations, antsParent, true);
-            //SpawnAnt(spawnLocations, antsParent, true);
 
             // Loop through the desired number of ants to generate 
             for (int i = 0; i < ConfigurationManager.Instance.Ant_Population - 1; i++)
@@ -129,13 +128,11 @@ namespace Antymology.Terrain
             GameObject antObject = Instantiate(antPrefab, locations[randomIndex], Quaternion.identity) as GameObject;
             if (isQueen)
             {
-                
                 Ant queen = antObject.GetComponent<Ant>();
                 queen.isQueen = true;
                 antObject.name = "Queen";
             } else
             {
-               // GameObject antObject = Instantiate(antPrefab, locations[randomIndex], Quaternion.identity);
                 antObject.transform.SetParent(antsParent.transform, false);
             }
             locations.RemoveAt(randomIndex);
