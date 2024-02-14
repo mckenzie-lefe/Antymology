@@ -85,7 +85,7 @@ namespace Antymology.Terrain
                     continue;
                 }
                     
-                pheromone *= (1 - ConfigurationManager.Instance.Pheromone_Evaperation_Rate); 
+                pheromone *= (1 - WorldManager.Instance.Current_Generation.Pheromone_Evaperation_Rate); 
             }
             //if (pheromoneDeposits[1] != 0.0)
             //{

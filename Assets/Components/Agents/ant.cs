@@ -53,9 +53,9 @@ public class Ant : MonoBehaviour
             ToggleHealthBarVisibility();
         }
 
-        maxHealth = ConfigurationManager.Instance.Max_Ant_Health;
-        health = ConfigurationManager.Instance.Starting_Ant_Health;
-        healthReduction = ConfigurationManager.Instance.Step_Health_Reduction;
+        maxHealth = WorldManager.Instance.Current_Generation.Max_Ant_Health;
+        health = WorldManager.Instance.Current_Generation.Starting_Ant_Health;
+        healthReduction = WorldManager.Instance.Current_Generation.Step_Health_Reduction;
         healthThreshold = maxHealth / 3;
 
     }
@@ -85,8 +85,6 @@ public class Ant : MonoBehaviour
     public void UpdateAnt()
     {
         MoveToTarget();
-
-        // Check for resource consumption
         ConsumeResourcesIfNeeded();
         ManageHealth();
         DepositePheramone();

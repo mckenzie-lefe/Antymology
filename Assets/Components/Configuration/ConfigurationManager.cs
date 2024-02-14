@@ -51,33 +51,31 @@ public class ConfigurationManager : Singleton<ConfigurationManager>
     public int Conatiner_Sphere_Radius = 20;
 
     /// <summary>
-    /// The starting population of ants
+    /// The number of randomly created inital Generations to create before using crossover
+    /// to create new generation.
     /// </summary>
-    public int Ant_Population = 2;
+    public int Number_Of_Starting_Generations = 5;
 
     /// <summary>
-    /// Ants starting health measure
+    /// Lowest possible starting ant population. 
+    /// Used as lower bound for ant population random number generator
     /// </summary>
-    public int Starting_Ant_Health = 200;
+    public int Min_Starting_Ants = 5;
 
     /// <summary>
-    /// Ants starting health measure
+    /// Highest possible starting ant population. 
+    /// Used as upper bound for ant population random number generator
     /// </summary>
-    public int Max_Ant_Health = 200;
+    public int Max_Starting_Ants = 600;
 
     /// <summary>
-    /// Ants starting health measure
+    /// Highest possible ant health. 
+    /// Used as upper bound for ant health random number generator
     /// </summary>
-    public int Step_Health_Reduction = 1;
+    public int Max_Ant_Health = 300;
 
     /// <summary>
     /// Show ants health bars
     /// </summary>
     public bool Show_Health = false;
-
-
-    /// <summary>
-    /// Rate that pheromones evaperated from airblocks each step
-    /// </summary>
-    public double Pheromone_Evaperation_Rate = 0.5;
 }

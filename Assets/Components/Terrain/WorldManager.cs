@@ -1,4 +1,5 @@
 ﻿using Antymology.Helpers;
+using Assets.Components.Agents;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -42,6 +43,10 @@ namespace Antymology.Terrain
         /// </summary>
         private SimplexNoise SimplexNoise;
 
+        private List<Generation> Generations;
+
+        public Generation Current_Generation;
+
         /// <summary>
         /// References to ants in world
         /// </summary>
@@ -58,6 +63,7 @@ namespace Antymology.Terrain
         /// </summary>
         void Awake()
         {
+            Debug.Log(Application.persistentDataPath);
             // Generate new random number generator
             RNG = new System.Random(ConfigurationManager.Instance.Seed);
 
@@ -77,6 +83,13 @@ namespace Antymology.Terrain
                 ConfigurationManager.Instance.World_Diameter];
 
             Ants = new List<Ant>();
+
+            Generations = new List<Generation>();
+            foreach (var file in System.IO.Directory.GetFiles("Assest/Configuration/AntGenerationData", " *.json") {
+                string json = System.IO.File.ReadAllText(file);
+                Generation data = JsonUtility.FromJson<Generation>(json);
+                Generations.Add(data);
+            }
         }
 
         /// <summary>
@@ -90,6 +103,7 @@ namespace Antymology.Terrain
             Camera.main.transform.position = new Vector3(0 / 2, Blocks.GetLength(1), 0);
             Camera.main.transform.LookAt(new Vector3(Blocks.GetLength(0), 0, Blocks.GetLength(2)));
 
+            CreateGenerationConfiguration();
             GenerateAnts();
             StartCoroutine(TimeStepUpdate());
         }
@@ -101,10 +115,14 @@ namespace Antymology.Terrain
             {
                 // Wait for one second
                 yield return new WaitForSeconds(1);
+                if (Ants.Count <= 0)
+                {
+                    string json = JsonUtility.ToJson(Current_Generation);
+                    System.IO.File.WriteAllText(Application.persistentDataPath + "/Generation" + Current_Generation.ID + "Data.json", json);
+                    break;
+                }
                 UpdateAnts();
                 UpdatePhermones();
-                
-
             }      
         }
 
@@ -134,7 +152,6 @@ namespace Antymology.Terrain
                 }
             }
         }
-
 
         private void UpdateAnts()
         {
@@ -194,7 +211,7 @@ namespace Antymology.Terrain
             SpawnAnt(spawnLocations, antsParent, true);
 
             // Loop through the desired number of ants to generate 
-            for (int i = 0; i < ConfigurationManager.Instance.Ant_Population - 1; i++)
+            for (int i = 0; i < Current_Generation.Ant_Population - 1; i++)
             {
                 if (spawnLocations.Count == 0)
                 {
@@ -229,6 +246,26 @@ namespace Antymology.Terrain
             Ants.Add(antObject.GetComponent<Ant>());
         }
 
+
+        private void CreateGenerationConfiguration() 
+        {
+            Generation gen;
+            if (Generations.Count < ConfigurationManager.Instance.Number_Of_Starting_Generations)
+            {
+                gen = new Generation();
+                gen.RandomInitialization();
+            }
+            else
+            {
+                Generations.OrderByDescending(i => i.Nest_Blocks);
+                gen = new Generation(Generations[1], Generations[2]);
+            }
+
+            Generations.Add(gen);
+            gen.ID = Generations.Count;
+            gen.PrintConfiguration();
+            Current_Generation = gen;
+        }
 
         #endregion
 
