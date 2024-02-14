@@ -20,7 +20,9 @@ namespace Antymology.Terrain
         /// </summary>
         private static bool _isVisible = false;
 
-        private int queenScent = 0;
+        public double queenScent = 0.0;
+
+        public double pheromone = 0.0;
 
         /// <summary>
         /// A dictionary representing the pheromone deposits in the air. Each type of phermone gets it's own byte key, and each phermone type has a concentration.
@@ -50,38 +52,45 @@ namespace Antymology.Terrain
             throw new Exception("An invisible tile cannot have a tile map coordinate.");
         }
 
-        public void SetQueenScent(int val)
-        {
-            queenScent = val;
-        }
-
         /// <summary>
         /// Each phermone type diffuses 50% of it value to its neighboring AirBlocks.
         /// </summary>
         /// <param name="neighbours">Airblocks in radius</param>
         public void DiffuseFoodPheromone(AirBlock[] neighbours)
         {
-            pheromoneDeposits[1] = pheromoneDeposits[1] / 2.0;
-            var diffuseAmount = pheromoneDeposits[1] / neighbours.Length;
-            foreach (AirBlock block in neighbours)
+            if (pheromoneDeposits[1] > neighbours.Length)
             {
-                block.Deposit(1, diffuseAmount);
+                pheromone = pheromone / 2.0;
+                var diffuseAmount = pheromone / neighbours.Length;
+                foreach (AirBlock block in neighbours)
+                {
+                    block.pheromone += diffuseAmount;
+                }
             }
         }
 
-        public void Deposit(byte pheromoneType, double amount)
+        public void DepositPheromone(float amount)
         {
-            pheromoneDeposits[pheromoneType] += amount;
-            Debug.Log("ab=" + pheromoneDeposits[1]);
+            pheromone += amount;
         }
 
-        public void Evaporate()
+        public void EvaporatePheromone()
         {
             List<byte> keys = new List<byte>(pheromoneDeposits.Keys);
             foreach (byte key in keys)
             {
-                pheromoneDeposits[key] *= (1 - ConfigurationManager.Instance.Pheromone_Evaperation_Rate); 
+                if (pheromone < 1.0)
+                {
+                    pheromone = 0.0;
+                    continue;
+                }
+                    
+                pheromone *= (1 - ConfigurationManager.Instance.Pheromone_Evaperation_Rate); 
             }
+            //if (pheromoneDeposits[1] != 0.0)
+            //{
+            //    Debug.Log("airblock=" + this.GetHashCode() + " pheromon=" + pheromoneDeposits[1]);
+            //}
         }
 
         #endregion

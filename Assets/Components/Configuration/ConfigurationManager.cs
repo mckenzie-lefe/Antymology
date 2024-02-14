@@ -53,7 +53,7 @@ public class ConfigurationManager : Singleton<ConfigurationManager>
     /// <summary>
     /// The starting population of ants
     /// </summary>
-    public int Ant_Population = 200;
+    public int Ant_Population = 2;
 
     /// <summary>
     /// Ants starting health measure

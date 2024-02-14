@@ -124,10 +124,10 @@ namespace Antymology.Terrain
                             AirBlock[] neighbours = GetNeighbouringAirBlocks(x, y, z);
 
                             airBlock.DiffuseFoodPheromone(neighbours);
-                            airBlock.Evaporate();
+                            airBlock.EvaporatePheromone();
 
                             float distance = Vector3.Distance(Queen.transform.position, new Vector3(x, y, z));
-                            airBlock.SetQueenScent((int) (100.0 / (1 + distance)));
+                            airBlock.queenScent = 100.0 / (1 + distance);
                         }
                         
                     }
@@ -146,9 +146,7 @@ namespace Antymology.Terrain
                    
         }
 
-
-        // Example method to get neighboring AirBlocks (you will need to implement this logic)
-        AirBlock[] GetNeighbouringAirBlocks(int x, int y, int z)
+        public AirBlock[] GetNeighbouringAirBlocks(int x, int y, int z)
         {
             List<AirBlock> neighbours = new List<AirBlock>();
 
@@ -205,9 +203,6 @@ namespace Antymology.Terrain
                 }
 
                 SpawnAnt(spawnLocations, antsParent);
-
-                // TO DO initialize ant properties or set its parent for organizational purposes ??
-                // ant.transform.SetParent(someParentTransform, false);
 
                 // TO DO setup for the ant can go here (e.g., assigning roles, initial resources, etc.)
             }

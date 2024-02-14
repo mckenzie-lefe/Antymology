@@ -13,22 +13,12 @@ public class Ant : MonoBehaviour
     /// <summary>
     /// 
     /// </summary>
-    private Vector3 targetPosition;
+    private string target = "Queen";
 
     /// <summary>
     /// Boolean indicating Queen ant status
     /// </summary>
     public bool isQueen = false;
-
-    /// <summary>
-    /// Seconds between ant steps 
-    /// </summary>
-    private float stepInterval = 1.0f;
-
-    /// <summary>
-    /// Time of next ant step
-    /// </summary>
-    private float nextStepTime = 0.0f;
 
     /// <summary>
     /// 
@@ -68,8 +58,6 @@ public class Ant : MonoBehaviour
         healthReduction = ConfigurationManager.Instance.Step_Health_Reduction;
         healthThreshold = maxHealth / 3;
 
-        testStart();
-
     }
 
     // Update is called once per frame
@@ -82,22 +70,6 @@ public class Ant : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
-        if (isQueen)
-        {
-            testMove();
-        }
-
-        //// Movement behavior
-        //if (Time.time >= nextStepTime)
-        //{
-        //    MoveToTarget();
-            
-        //    // Check for resource consumption
-        //    ConsumeResourcesIfNeeded();
-        //    ManageHealth();
-        //    nextStepTime = Time.time + stepInterval; 
-        //}
 
         // Check for digging ability
         //DigIfNeeded();
@@ -122,66 +94,42 @@ public class Ant : MonoBehaviour
 
     void DepositePheramone()
     {
-        // Get AirBlock directly above
+        // Get AirBlock directly above current block
         AbstractBlock curr = WorldManager.Instance.GetBlock((int)transform.position.x, (int)transform.position.y + 1, (int)transform.position.z);
         if (curr is not AirBlock)
         {
             Debug.LogError("Not AirBlock ????");
         }
-        ((AirBlock)curr).Deposit(1, 1);
-    }
-
-
-    void testStart()
-    {
-        if (isQueen)
-        {
-            transform.position = new Vector3(50, 21.4f, 59.1f);
-            Dictionary<string, Vector3> movablePositions = FindMovableAdjacentBlocks();
-            foreach (var p in movablePositions)
-            {
-                Debug.Log(p.Key + ": " + p.Value.x + ", " + p.Value.x + ", " + p.Value.z);
-
-            }
-        }
-    }
-
-    public void testMove()
-    {
-        Dictionary<string, Vector3> movablePositions = FindMovableAdjacentBlocks();
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            transform.position = movablePositions["F"];
-            Debug.Log("Moved to Forward");
-        }
-
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            transform.position = movablePositions["B"];
-            Debug.Log("Moved to BAckward");
-        }
-
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            transform.position = movablePositions["RD"];
-            Debug.Log("Moved to Right down");
-        }
-
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            transform.position = movablePositions["LU"];
-            Debug.Log("Moved to Left up");
-        }
+        ((AirBlock)curr).DepositPheromone(10);
     }
 
     private void MoveToTarget()
-    {
-        Dictionary<string, Vector3> movablePositions = FindMovableAdjacentBlocks();
+    { 
+        Dictionary<AirBlock, Vector3> movablePositions = FindMovableAdjacentBlocks();
+        if (movablePositions.Count == 0)
+        {
+            Dig();
+        }
+
         if (movablePositions.Count > 0)
         {
-            int randomIndex = UnityEngine.Random.Range(0, movablePositions.Count);
+            int randomIndex = Random.Range(0, movablePositions.Count);
+            var random = new System.Random();
+
+            movablePositions.OrderBy(i => i.Key.queenScent);
+
+            if (target == "Food")
+            {
+                // select from positions farthest from nest with highest pheromones
+                movablePositions.OrderBy(i => i.Key.queenScent).Take(movablePositions.Count/2).OrderBy(i => i.Key.pheromone).Take(2);
+            }
+            else if (target == "Queen")
+            {
+                // select from 3 closes positions to queen
+                movablePositions.OrderByDescending(i => i.Key.queenScent).Take(3);
+            }
            
-            transform.position = movablePositions.Values.ElementAt(randomIndex);
+            transform.position = movablePositions.Values.ElementAt(random.Next(movablePositions.Count));
         }
     }
 
@@ -190,11 +138,12 @@ public class Ant : MonoBehaviour
         if(GetBlockBelow() is MulchBlock && health <= healthThreshold)
         {
             RemoveBlockBelow();
-            health += 1;
+            health = maxHealth;
+            target = "queen";
         }
     }
 
-    void DigIfNeeded()
+    void Dig()
     {
         if(GetBlockBelow() is not ContainerBlock)
         {
@@ -206,6 +155,14 @@ public class Ant : MonoBehaviour
 
     void BuildNest()
     {
+        if (health > (maxHealth / 3) * 2)
+        {
+            WorldManager.Instance.SetBlock((int)transform.position.x, (int)transform.position.y, (int)transform.position.z, new NestBlock());
+            transform.position = new Vector3(transform.position.x, transform.position.y + 1, transform.position.z);
+
+            health -= maxHealth / 3;
+        }
+        
         // Implement logic for the queen ant to build a nest here
         // Reduce health by a third and create a nest block
     }
@@ -274,9 +231,9 @@ public class Ant : MonoBehaviour
         transform.position = new Vector3(transform.position.x, transform.position.y - 1, transform.position.z);
     }
 
-    private Dictionary<string, Vector3> FindMovableAdjacentBlocks()
+    private Dictionary<AirBlock, Vector3> FindMovableAdjacentBlocks()
     {
-        Dictionary<string, Vector3> movableBlocks = new Dictionary<string, Vector3>();
+        Dictionary<AirBlock, Vector3> movableBlocks = new Dictionary<AirBlock, Vector3>();
         Vector3 currentPosition = transform.position;
 
         // Define relative positions for adjacent blocks
@@ -304,10 +261,10 @@ public class Ant : MonoBehaviour
             if (!(block is AirBlock) && !(block is ContainerBlock))
             {
                 // Ensure the block directly above is an AirBlock 
-                AbstractBlock blockAbove = WorldManager.Instance.GetBlock((int)checkPos.x, (int)checkPos.y + 1, (int)checkPos.z);
-                if (WorldManager.Instance.GetBlock((int)checkPos.x, (int)checkPos.y + 1, (int)checkPos.z) is AirBlock)
+                AirBlock blockAbove = WorldManager.Instance.GetBlock((int)checkPos.x, (int)checkPos.y + 1, (int)checkPos.z) as AirBlock;
+                if (blockAbove != null)
                 {
-                    movableBlocks.Add(relativePos.Item1, checkPos);
+                    movableBlocks.Add(blockAbove, checkPos);
                 }
             }
         }
@@ -326,8 +283,16 @@ public class Ant : MonoBehaviour
             health -= healthReduction;
         }
 
-        
+        if (health < healthThreshold)
+        {
+            target = "Food";
+        }
+        UpdateHealthBar();
+    }
 
+
+    private void UpdateHealthBar()
+    {
         if (ConfigurationManager.Instance.Show_Health)
         {
             int bars = (int)System.Math.Round(health / (maxHealth / 7));
@@ -335,10 +300,10 @@ public class Ant : MonoBehaviour
             foreach (int bar in Enumerable.Range(1, 7))
             {
                 GameObject healthBar = transform.Find("HealthBar").gameObject.transform.Find("Bar" + bar.ToString()).gameObject;
-                if(healthBar != null)
+                if (healthBar != null)
                 {
                     MeshRenderer meshRenderer = healthBar.GetComponent<MeshRenderer>();
-                    if (meshRenderer != null) 
+                    if (meshRenderer != null)
                     {
                         if (health <= healthThreshold && meshRenderer.material != weakHealthMaterial)
                             meshRenderer.material = weakHealthMaterial;
@@ -353,17 +318,15 @@ public class Ant : MonoBehaviour
                     else
                         healthBar.SetActive(false);
 
-                } 
+                }
                 else
                 {
                     Debug.Log("nO BAR object");
                 }
-                
+
             }
         }
-        // if health below threshold, seek food
     }
-
     #endregion
 
 }
