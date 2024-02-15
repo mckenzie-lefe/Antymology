@@ -85,7 +85,8 @@ namespace Antymology.Terrain
             Ants = new List<Ant>();
 
             Generations = new List<Generation>();
-            foreach (var file in System.IO.Directory.GetFiles("Assest/Configuration/AntGenerationData", " *.json") {
+            foreach (var file in System.IO.Directory.GetFiles(Application.persistentDataPath, "*.json"))
+            {
                 string json = System.IO.File.ReadAllText(file);
                 Generation data = JsonUtility.FromJson<Generation>(json);
                 Generations.Add(data);
@@ -114,14 +115,15 @@ namespace Antymology.Terrain
             while (true)
             {
                 // Wait for one second
-                yield return new WaitForSeconds(1);
-                if (Ants.Count <= 0)
+                yield return new WaitForSeconds(1); 
+                UpdateAnts();
+                if (Queen == null)
                 {
+                    Debug.Log("DONE " + Current_Generation.ID);
                     string json = JsonUtility.ToJson(Current_Generation);
                     System.IO.File.WriteAllText(Application.persistentDataPath + "/Generation" + Current_Generation.ID + "Data.json", json);
                     break;
                 }
-                UpdateAnts();
                 UpdatePhermones();
             }      
         }

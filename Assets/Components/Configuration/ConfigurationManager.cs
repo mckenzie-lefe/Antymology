@@ -77,5 +77,5 @@ public class ConfigurationManager : Singleton<ConfigurationManager>
     /// <summary>
     /// Show ants health bars
     /// </summary>
-    public bool Show_Health = false;
+    public bool Show_Health = true;
 }

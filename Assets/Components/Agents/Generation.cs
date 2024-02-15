@@ -50,16 +50,17 @@ namespace Assets.Components.Agents
 
         public Generation() 
         {
-            
+            Nest_Blocks = 0;
         }
         public void RandomInitialization()
         {
             System.Random rng = new System.Random();
             Ant_Population = rng.Next(ConfigurationManager.Instance.Min_Starting_Ants, ConfigurationManager.Instance.Max_Starting_Ants);
             Starting_Ant_Health = rng.Next(10, ConfigurationManager.Instance.Max_Ant_Health);
+            Max_Ant_Health = Max_Queen_Health = rng.Next(30, ConfigurationManager.Instance.Max_Ant_Health);
             Max_Queen_Health = rng.Next(30, ConfigurationManager.Instance.Max_Ant_Health);
-            Step_Health_Reduction = rng.Next(1, Starting_Ant_Health / 3);
-            Pheromone_Evaperation_Rate = rng.Next(1, 100) / 100;
+            Step_Health_Reduction = 5;
+            Pheromone_Evaperation_Rate = rng.Next(1, 100) / 100.0;
         }
 
         public Generation(Generation g1, Generation g2)
