@@ -122,6 +122,7 @@ namespace Antymology.Terrain
                     Debug.Log("DONE " + Current_Generation.ID);
                     string json = JsonUtility.ToJson(Current_Generation);
                     System.IO.File.WriteAllText(Application.persistentDataPath + "/Generation" + Current_Generation.ID + "Data.json", json);
+                    Start();
                     break;
                 }
                 UpdatePhermones();
@@ -272,6 +273,11 @@ namespace Antymology.Terrain
         #endregion
 
         #region Methods
+
+        private void ResetSimulation()
+        {
+            
+        }
 
         /// <summary>
         /// Finds all topmost blocks that are not container or airblock blocks. i.e. possible spawn locations

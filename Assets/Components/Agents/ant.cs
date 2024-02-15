@@ -13,7 +13,7 @@ public class Ant : MonoBehaviour
     /// <summary>
     /// 
     /// </summary>
-    private string target = "Queen"; 
+    private string target = "food"; 
 
     /// <summary>
     /// Boolean indicating Queen ant status
@@ -56,9 +56,7 @@ public class Ant : MonoBehaviour
         healthThreshold = maxHealth / 3;
 
         if (isQueen)
-        {
-            InitializeQueen();  
-        }
+            InitializeQueen();
 
         SetHealthBarVisibility();
     }
@@ -66,10 +64,8 @@ public class Ant : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
- 
         if (health <= 0)
         {
-            //Debug.Log("health bad");
             Destroy(gameObject);
             return;
         }
@@ -83,25 +79,34 @@ public class Ant : MonoBehaviour
         if (isQueen)
         {
             MoveQueen();
-        } else
+        } 
+        else
         {
+            if (target == "queen")  
+                GiveHealth();
+
             MoveToTarget();
             ConsumeResourcesIfNeeded();
             DepositePheramone();
+            
         }
-       
+        
         ManageHealth();
     }
 
     void DepositePheramone()
     {
-        // Get AirBlock directly above current block
-        AbstractBlock curr = WorldManager.Instance.GetBlock((int)transform.position.x, (int)transform.position.y + 1, (int)transform.position.z);
-        if (curr is not AirBlock)
+        // only deposit pheromone if returning from food
+        if (target == "queen")
         {
-            Debug.LogError("Not AirBlock ????");
+            // Get AirBlock directly above current block
+            AbstractBlock curr = WorldManager.Instance.GetBlock((int)transform.position.x, (int)transform.position.y + 1, (int)transform.position.z);
+            if (curr is not AirBlock)
+            {
+                Debug.LogError("Not AirBlock ????");
+            }
+            ((AirBlock)curr).DepositPheromone(10);
         }
-        ((AirBlock)curr).DepositPheromone(10);
     }
 
     void ConsumeResourcesIfNeeded()
@@ -119,7 +124,6 @@ public class Ant : MonoBehaviour
         if(GetBlockBelow() is not ContainerBlock)
         {
             RemoveBlockBelow();
-            
         }
         // Implement logic to dig up the world here
         // Check for the block type beneath and remove it if it's diggable
@@ -181,12 +185,12 @@ public class Ant : MonoBehaviour
         }
         maxHealth = WorldManager.Instance.Current_Generation.Max_Queen_Health;
     }
+    
     private void MoveToTarget()
     {
         Dictionary<AirBlock, Vector3> movablePositions = FindMovableAdjacentBlocks();
         if (movablePositions.Count == 0)
         {
-            //Debug.Log("DIG");
             Dig();
         }
 
@@ -194,12 +198,12 @@ public class Ant : MonoBehaviour
         {
             movablePositions.OrderBy(i => i.Key.queenScent);
 
-            if (target == "Food")
+            if (target == "food")
             {
                 // select from positions farthest from nest with highest pheromones
                 movablePositions.OrderBy(i => i.Key.queenScent).Take(movablePositions.Count / 2).OrderBy(i => i.Key.pheromone).Take(2);
             }
-            else if (target == "Queen")
+            else if (target == "queen")
             {
                 // select from 3 closes positions to queen
                 movablePositions.OrderByDescending(i => i.Key.queenScent).Take(3);
@@ -208,38 +212,56 @@ public class Ant : MonoBehaviour
             transform.position = movablePositions.Values.ElementAt(RNG.Next(movablePositions.Count));
         }
     }
+    
     private void ManageHealth()
     {
-        if (GetBlockBelow() is AcidicBlock)
-        {
+        if (GetBlockBelow() is AcidicBlock) 
             health -= (healthReduction * 2);
-        }
-        else
-        {
+        else 
             health -= healthReduction;
-        }
 
-        if (health < healthThreshold && !isQueen)
-        {
-            target = "Food";
-        }
+        if (health < healthThreshold && !isQueen) 
+            target = "food";
+
         UpdateHealthBar();
     }
 
     // Method for ant to give health to another ant
-    public void GiveHealth(Ant recipient, float amount)
-    {
-        if (this.health > amount)
+    public void GiveHealth()
+    {   
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 0.1f);
+        foreach (var hitCollider in hitColliders)
         {
-            this.health -= amount;
-            recipient.ReceiveHealth(amount);
-        }
+            var amountToGive = health - healthThreshold;
+            if (amountToGive <= 0) return;
+
+            Ant receivingAnt = hitCollider.GetComponent<Ant>();
+            if (receivingAnt != null)
+            {
+                var amountNeeded = receivingAnt.maxHealth - receivingAnt.health;
+                if (amountNeeded > amountToGive)
+                {
+                    health -= amountNeeded;
+                    receivingAnt.ReceiveHealth(amountNeeded);
+                } 
+                else
+                {
+                    health -= amountToGive;
+                    receivingAnt.ReceiveHealth(amountToGive);
+                }
+            }
+        }  
     }
 
     // Method for ant to receive health from another ant
     public void ReceiveHealth(float amount)
     {
-        this.health += amount;
+        health += amount;
+
+        Debug.Log("GOT HEALTH");
+
+        if (!isQueen && target == "food" && health >= healthThreshold) 
+            target = "queen";
     }
 
     #endregion
@@ -255,16 +277,11 @@ public class Ant : MonoBehaviour
         {
             GameObject healthBar = transform.Find("HealthBar").gameObject;
 
-            if (healthBar != null)
-            {
+            if (healthBar != null) 
                 healthBar.SetActive(false);
-            }
-            else
-            {
+            else 
                 Debug.LogError("HealthBar object not found");
-            }
         }
-        
     }
 
     private AbstractBlock GetBlockBelow()
@@ -282,6 +299,7 @@ public class Ant : MonoBehaviour
     {
         Dictionary<AirBlock, Vector3> movableBlocks = new Dictionary<AirBlock, Vector3>();
         Vector3 position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
+
         // Define relative positions for adjacent blocks
         var adjacentPositions = new List<(string, Vector3)>
         {
@@ -303,15 +321,15 @@ public class Ant : MonoBehaviour
         {
             Vector3 checkPos = position + relativePos.Item2;
             AbstractBlock block = WorldManager.Instance.GetBlock((int)checkPos.x, (int)checkPos.y, (int)checkPos.z);
+
             // Ensure the block to move to is not an AirBlock or ContainerBlock
             if (block is not AirBlock && block is not ContainerBlock)
             {
                 // Ensure the block directly above is an AirBlock 
                 AirBlock blockAbove = WorldManager.Instance.GetBlock((int)checkPos.x, (int)checkPos.y + 1, (int)checkPos.z) as AirBlock;
-                if (blockAbove != null)
-                {
+                
+                if (blockAbove != null) 
                     movableBlocks.Add(blockAbove, checkPos);
-                }
             }
         }
 
@@ -337,7 +355,6 @@ public class Ant : MonoBehaviour
 
                         else if (health > healthThreshold && meshRenderer.material != strongHealthMaterial)
                             meshRenderer.material = strongHealthMaterial;
-
                     }
 
                     if (bar <= bars)
@@ -350,7 +367,6 @@ public class Ant : MonoBehaviour
                 {
                     Debug.Log("nO BAR object");
                 }
-
             }
         }
     }
