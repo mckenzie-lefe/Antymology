@@ -112,15 +112,14 @@ namespace Antymology.Terrain
             {
                 // Wait for one second
                 yield return new WaitForSeconds(1);
-                UpdatePhermones();
-                Queen.UpdateAnt();
-                UpdateAnts();
                 if (Queen == null)
                 {
                     End_Evalution_Phase();
                     break;
                 }
-                
+                UpdatePhermones();
+                Queen.UpdateAnt();
+                UpdateAnts();
             }      
         }
 
@@ -263,13 +262,17 @@ namespace Antymology.Terrain
 
             foreach (var chunk in Chunks)
             {
-                Destroy(chunk);
+                DestroyImmediate(chunk.gameObject);
             }
 
             foreach (var ant in Ants)
             {
-                Destroy(ant);
+                if(ant != null)
+                    DestroyImmediate(ant.gameObject);
             }
+
+            DestroyImmediate(GameObject.Find("Chunks"));
+            DestroyImmediate(GameObject.Find("Ants"));
 
             // Initialize a new 3D array of blocks with size of the number of chunks times the size of each chunk
             Blocks = new AbstractBlock[
@@ -449,8 +452,6 @@ namespace Antymology.Terrain
             Queen.isQueen = true;
             Queen.name = "Queen";
 
-            var numWorkerAnts = (Current_Generation.Percent_Worker_Ants * (Current_Generation.Ant_Population - 1)) / 100;
-            
             // Loop through the desired number of ants to generate 
             for (int i = 0; i < Current_Generation.Ant_Population - 1; i++)
             {
@@ -462,13 +463,10 @@ namespace Antymology.Terrain
 
                 Ant ant = SpawnAnt(spawnLocations, antsParent);
                 ant.name = i.ToString();
-                if (i <= numWorkerAnts)
-                    ant.role = 1;
-                else
-                    ant.role = 2;
-
                 Ants.Add(ant);
             }
+
+            AssignAntRoles();
         }
 
         private void CreateGenerationConfiguration()
@@ -481,8 +479,9 @@ namespace Antymology.Terrain
             }
             else
             {
-                Generations.OrderByDescending(i => i.Nest_Blocks);
-                gen = new Generation(Generations[1], Generations[2]);
+                // order by number of nest block and keep best 10
+                Generations.OrderByDescending(i => i.Nest_Blocks).Take(Math.Min(10, Generations.Count));
+                gen = new Generation(Generations[RNG.Next(0, 3)], Generations[4]);
             }
 
             Generations.Add(gen);
@@ -539,6 +538,36 @@ namespace Antymology.Terrain
             locations.RemoveAt(randomIndex);
 
             return antObject.GetComponent<Ant>();
+        }
+
+        private void AssignAntRoles()
+        {
+            for (int x = 0; x < Blocks.GetLength(0); x++)
+            {
+                for (int y = 0; y < Blocks.GetLength(1); y++)
+                {
+                    for (int z = 0; z < Blocks.GetLength(2); z++)
+                    {
+                        // Check if the block is an AirBlock
+                        AirBlock airBlock = Blocks[x, y, z] as AirBlock;
+                        if (airBlock != null)
+                        {
+                            float distance = Vector3.Distance(Queen.transform.position, new Vector3(x, y, z));
+                            airBlock.queenScent = 100.0 / (1 + distance);
+                        }
+                    }
+                }
+            }
+
+            var numWorkerAnts = (Current_Generation.Percent_Worker_Ants * Ants.Count) / 100;
+            Ants.OrderBy(i => i.currentAirBlock.queenScent);
+            for (int i = 0; i < Ants.Count; i++)
+            {
+                if (i <= numWorkerAnts)
+                    Ants[i].role = 2;
+                else
+                    Ants[i].role = 1;
+            }
         }
 
         private void End_Evalution_Phase()

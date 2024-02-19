@@ -60,7 +60,7 @@ public class ConfigurationManager : Singleton<ConfigurationManager>
     /// Lowest possible starting ant population. 
     /// Used as lower bound for ant population random number generator
     /// </summary>
-    public int Min_Starting_Ants = 5;
+    public int Min_Starting_Ants = 2;
 
     /// <summary>
     /// Highest possible starting ant population. 
