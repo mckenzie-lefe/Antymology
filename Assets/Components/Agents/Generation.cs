@@ -55,7 +55,7 @@ namespace Assets.Components.Agents
         /// <summary>
         /// Percentage of ants whose job is to transfer enegry to queen so that she can build NestBlocks (jobType 2) 
         /// </summary>
-        public int Percent_Nest_Builder_Ants;
+        public int Percent_Protector_Ants;
 
         /// <summary>
         /// Nest blocks created by generation
@@ -78,8 +78,8 @@ namespace Assets.Components.Agents
             Max_Queen_Health = rng.Next(Max_Ant_Health, ConfigurationManager.Instance.Max_Ant_Health);  
             Pheromone_Evaperation_Rate = rng.Next(1, 100) / 100.0;
             Hungry_Threshold = (float) Math.Round(rng.Next(1, ConfigurationManager.Instance.Max_Hungry_Threshold_Percent) / 100.0, 2);
-            Percent_Nest_Builder_Ants = (int) Math.Round(((rng.Next(1, Ant_Population)) / (double)Ant_Population) * 100);
-            Percent_Worker_Ants = 100 - Percent_Nest_Builder_Ants;
+            Percent_Protector_Ants = (int) Math.Round(((rng.Next(1, Ant_Population)) / (double)Ant_Population) * 100);
+            Percent_Worker_Ants = 100 - Percent_Protector_Ants;
         }
 
         public Generation(Generation g1, Generation g2)
@@ -92,7 +92,7 @@ namespace Assets.Components.Agents
             Max_Queen_Health = g2.Max_Queen_Health;
             Pheromone_Evaperation_Rate = g1.Pheromone_Evaperation_Rate;
             Hungry_Threshold= g1.Hungry_Threshold;
-            Percent_Nest_Builder_Ants = g2.Percent_Nest_Builder_Ants;
+            Percent_Protector_Ants = g2.Percent_Protector_Ants;
             Percent_Worker_Ants = g2.Percent_Worker_Ants;
         }
 

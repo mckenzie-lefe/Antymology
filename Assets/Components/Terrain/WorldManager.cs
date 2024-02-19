@@ -585,6 +585,7 @@ namespace Antymology.Terrain
 
         /// <summary>
         /// Assigns roles to ants based on the current generation's configuration.
+        /// Either protector or worker role.
         /// </summary>
         private void AssignAntRoles()
         {

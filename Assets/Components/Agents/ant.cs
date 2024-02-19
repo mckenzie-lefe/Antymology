@@ -22,9 +22,9 @@ public class Ant : MonoBehaviour
     private bool hungry;
 
     /// <summary>
-    /// Defines the ant's role within the colony (1 for nest builder, 2 for worker ant).
-    /// nest builder antsrole is to transfer engery to queen to build nest
-    /// worker ants role is to find food and give to nest building ants
+    /// Defines the ant's role within the colony (1 for protector ant, 2 for worker ant).
+    /// protector ants role is to transfer engery to queen to build nest
+    /// worker ants role is to find food and give to protector ants
     /// </summary>
     public int role;
 

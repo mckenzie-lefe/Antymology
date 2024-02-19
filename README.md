@@ -1,74 +1,79 @@
 # Assignment 3: Antymology
 
-As we\'ve seen in class, ants exhibit very interesting behaviour. From finding the shortest path to building bridges out of bodies ants have evolved to produce complex emergents from very simple rules. For your assignment you will need to create a species of ant which is capable of generating the biggest nest possible.
-
-I have already created the base code you will use for the assignment. Currently the simulation environment is devoid of any dynamic behaviour and exists only as a landscape. You will need to extend the functionality of what I have written in order to produce \"intelligent\" behaviour. Absolutely no behaviour has been added to this project so you are free to implement whatever you want however you want, with only a few stipulations.
+This project aims to simulate the behaviors of ants through a Unity-based environment, drawing inspiration from their real-world capabilities like pathfinding, bridge formation, and nest construction. Leveraging simple rules, the simulation explores how complex emergent behaviors can evolve. The core objective is to develop a species of ant capable of maximizing nest production through an evolutionary algorithm. This involves creating an ecosystem where ants interact with their environment and each other to build the largest possible nest, showcasing the power of evolutionary principles in generating intelligent, adaptive behaviors.
 
 ![Ants](Images/Ants.gif)
 
-## Goal
+## Features
+- Ants dynamically look for food, dig through terrain, and build nests based on environmental cues.
+- Distinct roles within the ant population, including protectors, workers and a queen, each with specific tasks.
+- Health system where ants consume resources to survive and can die if health reaches zero.
+- Ants avoid obstacles and navigate terrain with height differences.
+- Implementation of pheromone trails for indirect communication between ants, influencing ant movement and nest-building.
+- Specialized behaviors for the queen ant, including nest block production critical to the simulation's objective.
 
-The only goal you have is to implement some sort of evolutionary algorithm which maximises nest production. You are in complete control over how your ants breed, make choices, and interact with the environment. Because of this, your mark is primarily going to be reflective of how much effort it looks like you put into this vs. how well your agents maximise their fitness (I.e. don\'t worry about having your ants perform exceptionally well).
+An evolutionary algorithm evolves the following ant behaviors over generations, optimizing nest-building efficiency:
+- Ant Population 
+- Starting Ant Health
+- Maximum Ant Health
+- Maximum Queen Health
+- Pheromone Evaperation Rate 
+- Hungry Threshold
+- Number of Protector Ants 
+- Number of Worker Ants 
 
-## Current Code
-My code is currently broken into 4 components (found within the components folder)
-1. Agents
-2. Configuration
-3. Terrain
-4. UI
+## Ant Behavior Details
+- Ant health decreases over time, requiring ants to consume mulch blocks for energy.
+- Ants cannot consume mulch blocks already occupied by another ant.
+- Movement is restricted by terrain, with ants unable to traverse heights greater than 2 units.
+- Digging behavior allows remove blocks from world, with the exception of the container blocks 
+- Ants standing on acidic blocks health decreases by double the normal rate.
+- Health can be transferred between ants occupying the same space.
+- Queen ant role is to build nest blocks.
+- Protector ants role is to transfer engery to queen to build nest and ensure wueen survival.
+- Worker ants role is to find food and give enegry to protector ants.
+- Worker ants move according to strongest ant pheromones.
+- Protector ants move according the queen scent.
 
-You are able to experience it generating an environment by simply running the project once you have loaded it into unity.
+### Environment
+- Terrain generation creates a diverse landscape with various block types, including mulch, acidic, grass, air, stone and container blocks.
+- The environment supports dynamic interactions, such as digging and mulch block consumption by ants.
+- Queen ant can create new nest block in the environment.
+- Queen scent and Pheromone mechanics influence ant movement and decision-making, simulating natural ant behavior.
+- Evolutionary pressures within the simulation drive adaptation and optimization of ant behaviors across generations.
 
-### Agents
-The agents component is currently empty. This is where you will place most of your code. The component will be responsible for moving ants, digging, making nests, etc. You will need to come up with a system for how ants interact within the world, as well as how you will be maximising their fitness (see ant behaviour).
+### Implementation
+- Developed in Unity 2022.3.18f1
+- The codebase is modular, with clear separations between agents, configuration, terrain generation, and UI components.
+- Use of serializable Generations classes for easy configuration of ants and adaptation of simulation parameters.
+- Implementation of custom algorithms for ant behavior, including foraging logic, health management, and evolutionary strategies.
+- Extensible design allowing for future enhancements, such as additional ant roles or environmental challenges.
 
-### Configuration
-This is the component responsible for configuring the system. For example, currently there exists a file called ConfigurationManager which holds the values responsible for world generation such as the dimensions of the world, and the seed used in the RNG. As you build parameters into your system, you will need to place your necesarry configuration components in here.
+### Setup and Running Instructions
+- Clone the Repository: Fork and clone the provided GitHub repository to your local machine.
+- Open in Unity: Launch Unity Hub, click 'Open', and navigate to your cloned project directory. Select the project to open it in Unity Editor, ensuring you're using Unity version 2022.3.18f1.
+- Load the Scene: In the Unity Editor, navigate to the 'Scenes' folder within the Project tab, and double-click the main scene to load it.
+- Adjust Settings: Review and adjust the configuration settings as necessary within the ConfigurationManager script to tailor the simulation environment.
+- Play Mode: Enter Play Mode in Unity to start the simulation. The environment will generate, and ants will begin their activities based on the implemented behaviors.
 
-### Terrain
-The terrain memory, generation, and display all take place in the terrain component. The main WorldManager is responsible for generating everything.
+### UI and Interaction
+- Nest Block Counter: A UI element prominently displayed on the screen, showing the current number of nest blocks within the simulation. This dynamically updates as the queen ant produces more nest blocks.
+- Health Indicators: Visual indicators for each ant, reflecting their current health status, changing in real-time as ants consume resources or are affected by environmental factors.
+- Simulation Controls: UI controls to pause, resume, or restart the simulation, allowing users to observe changes in ant behavior and nest construction over time.
 
-### UI
-This is where all UI components will go. Currently only a fly camera, and a camera-controlled map editor are present here.
+Users can navigate the simulation using the camera controls:
+- wasd : basic movement
+- shift : Makes camera accelerate
+- space : Moves camera on X and Z axis only.  
 
-## Requirements
+## Challenges and Learnings
 
-### Admin
- - This assignment must be implemented using Unity 2019or above (see appendix)
- - Your code must be maintained in a github (or other similar git environment) repository.
- - You must fork from this repo to start your project.
- - You will be marked for your commit messages as well as the frequency with which you commit. Committing everything at once will receive a letter grade reduction (A →A-).
- - All project documentation should be provided via a Readme.md file found in your repo. Write it as if I was an employer who wanted to see a portfolio of your work. By that I mean write it as if I have no idea what the project is. Describe it in detail. Include images/gifs.
+### Future Work
+- Ant Behavior Complexity: Introduce more complex behaviors such as ant specialization based on environmental challenges or nest needs.
+- Environmental Variability: Implement changing environmental conditions that affect resource availability, introducing dynamic challenges for ant survival and nest building.
+- Genetic Algorithms: Enhance the evolutionary algorithm to include genetic traits passed down to offspring, influencing ant behaviors and adaptability.
 
-### Interface
-- The camera must be usable in play-mode so as to allow the grader the ability to look at what is happening in the scene.
-- You must create a basic UI which shows the current number of nest blocks in the world
+### Contribution and Credits
 
-### Ant Behaviour
-- Ants must have some measure of health. When an ants health hits 0, it dies and needs to be removed from the simulation
-- Every timestep, you must reduce each ants health by some fixed amount
-- Ants can refill their health by consuming Mulch blocks. To consume a mulch block, and ant must be directly ontop of a mulch block. After consuming, the mulch block must be removed from the world.
-- Ants cannot consume mulch if another ant is also on the same mulch block
-- When moving from one black to another, ants are not allowed to move to a block that is greater than 2 units in height difference
-- Ants are able to dig up parts of the world. To dig up some of the world, an ant must be directly ontop of the block. After digging, the block is removed from the map
-- Ants cannot dig up a block of type ContainerBlock
-- Ants standing on an AcidicBlock will have the rate at which their health decreases multiplied by 2.
-- Ants may give some of their health to other ants occupying the same space (must be a zero-sum exchange)
-- Among your ants must exists a singular queen ant who is responsible for producing nest blocks
-- Producing a single nest block must cost the queen 1/3rd of her maximum health.
-- No new ants can be created during each evaluation phase (you are allowed to create as many ants as you need for each new generation though).
-
-## Tips
-Initially you should first come up with some mechanism which each ant uses to interact with the environment. For the beginning phases your ants should behave completely randomly, at least until you have gotten it so that your ants don't break the pre-defined behaviour above.
-
-Once you have the interaction mechanism nailed down, begin thinking about how you will get your ants to change over time. One approach might be to use a neural network to dictate ant behaviour
-
-https://youtu.be/zIkBYwdkuTk
-
-another approach might be to use phermone deposits (I\'ve commented how you could achieve this in the code for the AirBlock) and have your genes be what action should be taken for different phermone concentrations, etc.
-
-## Submission
-Export your project as a Unity package file. Submit your Unity package file and additional document using the D2L system under the corresponding entry in Assessments/Dropbox. Inlude in the message a link to your git repo where you did your work.
-
-## Ant Model
-https://free3d.com/3d-model/ant-71866.html
+The base code for the assignment has been provided by Cooper Davies.
+[GitHub - DaviesCooper/Antymology](https://free3d.com/3d-model/ant-71866.html)
