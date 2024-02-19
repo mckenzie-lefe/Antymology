@@ -43,6 +43,11 @@ namespace Assets.Components.Agents
         public double Pheromone_Evaperation_Rate;
 
         /// <summary>
+        /// How much remaining ant health for ant to be considered hungry and start looking for food.  
+        /// </summary>
+        public float Hungry_Threshold;
+
+        /// <summary>
         /// Percentage of ants whose job is to find food and transfer to energy to Nest building ants (jobType 1) 
         /// </summary>
         public int Percent_Worker_Ants;
@@ -51,7 +56,6 @@ namespace Assets.Components.Agents
         /// Percentage of ants whose job is to transfer enegry to queen so that she can build NestBlocks (jobType 2) 
         /// </summary>
         public int Percent_Nest_Builder_Ants;
-
 
         /// <summary>
         /// Nest blocks created by generation
@@ -69,11 +73,12 @@ namespace Assets.Components.Agents
             Nest_Blocks = 0;
             Step_Health_Reduction = 5;
             Ant_Population = rng.Next(ConfigurationManager.Instance.Min_Starting_Ants, ConfigurationManager.Instance.Max_Starting_Ants);
-            Starting_Ant_Health = rng.Next(10, ConfigurationManager.Instance.Max_Ant_Health);
-            Max_Ant_Health = Max_Queen_Health = rng.Next(30, ConfigurationManager.Instance.Max_Ant_Health);
-            Max_Queen_Health = rng.Next(30, ConfigurationManager.Instance.Max_Ant_Health);  
+            Max_Ant_Health = rng.Next(30, ConfigurationManager.Instance.Max_Ant_Health);
+            Starting_Ant_Health = rng.Next(Max_Ant_Health / 3, Max_Ant_Health);
+            Max_Queen_Health = rng.Next(Max_Ant_Health, ConfigurationManager.Instance.Max_Ant_Health);  
             Pheromone_Evaperation_Rate = rng.Next(1, 100) / 100.0;
-            Percent_Nest_Builder_Ants = (int) Math.Round((rng.Next(0, Ant_Population) / Ant_Population) * 100.0, 0);
+            Hungry_Threshold = rng.Next(1, ConfigurationManager.Instance.Max_Hungry_Threshold_Percent) / 100.0f;
+            Percent_Nest_Builder_Ants = (int) Math.Round(((rng.Next(1, Ant_Population)) / (double)Ant_Population) * 100);
             Percent_Worker_Ants = 100 - Percent_Nest_Builder_Ants;
         }
 
@@ -86,6 +91,7 @@ namespace Assets.Components.Agents
             Max_Ant_Health = g2.Max_Ant_Health;
             Max_Queen_Health = g2.Max_Queen_Health;
             Pheromone_Evaperation_Rate = g1.Pheromone_Evaperation_Rate;
+            Hungry_Threshold= g1.Hungry_Threshold;
             Percent_Nest_Builder_Ants = g2.Percent_Nest_Builder_Ants;
             Percent_Worker_Ants = g2.Percent_Worker_Ants;
         }
@@ -98,6 +104,7 @@ namespace Assets.Components.Agents
                 "Max_Queen_Health=" + Max_Queen_Health + "\n" +
                 "Step_Health_Reduction=" + Step_Health_Reduction + "\n" + 
                 "Pheromone_Evaperation_Rate=" + Pheromone_Evaperation_Rate + "\n" +
+                "Hungry_Threshold=" + Hungry_Threshold + "\n" +
                 "Percent_Nest_Builder_Ants=" + Percent_Nest_Builder_Ants + "\n" +
                 "Percent_Worker_Antse=" + Percent_Worker_Ants);
         }

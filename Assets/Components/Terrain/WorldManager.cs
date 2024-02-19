@@ -101,8 +101,8 @@ namespace Antymology.Terrain
             Camera.main.transform.LookAt(new Vector3(Blocks.GetLength(0), 0, Blocks.GetLength(2)));
 
             CreateGenerationConfiguration();
-            test();
-            //GenerateAnts();
+            //test();
+            GenerateAnts();
             StartCoroutine(TimeStepUpdate());
         }
 
@@ -436,7 +436,8 @@ namespace Antymology.Terrain
         }
 
         /// <summary>
-        /// TO BE IMPLEMENTED BY YOU
+        /// 
+        /// With the except of the queen ants are either workers or nest builders
         /// </summary>
         private void GenerateAnts()
         {
@@ -444,8 +445,12 @@ namespace Antymology.Terrain
             List<Vector3> spawnLocations = GetSpawnLocations();
 
             // Create Queen
-            SpawnAnt(spawnLocations, antsParent, true);
+            Queen = SpawnAnt(spawnLocations, antsParent);
+            Queen.isQueen = true;
+            Queen.name = "Queen";
 
+            var numWorkerAnts = (Current_Generation.Percent_Worker_Ants * (Current_Generation.Ant_Population - 1)) / 100;
+            
             // Loop through the desired number of ants to generate 
             for (int i = 0; i < Current_Generation.Ant_Population - 1; i++)
             {
@@ -455,9 +460,14 @@ namespace Antymology.Terrain
                     continue;
                 }
 
-                SpawnAnt(spawnLocations, antsParent);
+                Ant ant = SpawnAnt(spawnLocations, antsParent);
+                ant.name = i.ToString();
+                if (i <= numWorkerAnts)
+                    ant.role = 1;
+                else
+                    ant.role = 2;
 
-                // TO DO setup for the ant can go here (e.g., assigning roles, initial resources, etc.)
+                Ants.Add(ant);
             }
         }
 
@@ -518,27 +528,17 @@ namespace Antymology.Terrain
             return topmostBlocks;
         }
 
-        private void SpawnAnt(List<Vector3> locations, GameObject antsParent, bool isQueen = false)
+        private Ant SpawnAnt(List<Vector3> locations, GameObject antsParent)
         {
             // Select a random index from the list of grass top positions
             int randomIndex = RNG.Next(locations.Count);
 
             // Instantiate the ant prefab at the determined location
             GameObject antObject = Instantiate(antPrefab, locations[randomIndex], Quaternion.identity) as GameObject;
-            if (isQueen)
-            {
-                Queen = antObject.GetComponent<Ant>();
-                Queen.isQueen = true;
-                antObject.name = "Queen";
-
-            }
-            else
-            {
-                antObject.transform.SetParent(antsParent.transform, false);
-                Ants.Add(antObject.GetComponent<Ant>());
-            }
+            antObject.transform.SetParent(antsParent.transform, false);
             locations.RemoveAt(randomIndex);
-            
+
+            return antObject.GetComponent<Ant>();
         }
 
         private void End_Evalution_Phase()

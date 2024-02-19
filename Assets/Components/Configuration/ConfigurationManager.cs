@@ -75,6 +75,12 @@ public class ConfigurationManager : Singleton<ConfigurationManager>
     public int Max_Ant_Health = 300;
 
     /// <summary>
+    /// The maximum percentage health that the hungry threshold can be set to for ants
+    /// Ants start looking for food when their health is less than the hungry threshold
+    /// </summary>
+    public int Max_Hungry_Threshold_Percent = 70;
+
+    /// <summary>
     /// Show ants health bars
     /// </summary>
     public bool Show_Health = true;

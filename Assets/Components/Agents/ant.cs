@@ -15,7 +15,13 @@ public class Ant : MonoBehaviour
     /// </summary>
     private string target;
 
-    private int jobType;
+    private bool hungry;
+
+    /// <summary>
+    /// 1 == worker ant == role is to find food and give to nest building ants
+    /// 2 == nest builder == role is to transfer engery to queen to build nest
+    /// </summary>
+    public int role;
 
     /// <summary>
     /// Boolean indicating Queen ant status
@@ -55,12 +61,12 @@ public class Ant : MonoBehaviour
         maxHealth = WorldManager.Instance.Current_Generation.Max_Ant_Health;
         health = WorldManager.Instance.Current_Generation.Starting_Ant_Health;
         healthReduction = WorldManager.Instance.Current_Generation.Step_Health_Reduction;
-        healthThreshold = maxHealth / 3;
+        healthThreshold = (WorldManager.Instance.Current_Generation.Hungry_Threshold * WorldManager.Instance.Current_Generation.Max_Ant_Health) / 1;
 
         if (health > healthThreshold)
-            target = "queen";
+            hungry = false;
         else
-            target = "food";
+            hungry = true;
 
         if (isQueen)
             InitializeQueen();
@@ -89,13 +95,12 @@ public class Ant : MonoBehaviour
         } 
         else
         {
-            if (target == "queen")  
+            if (!hungry)  
                 GiveHealth();
 
             MoveToTarget();
             ConsumeResourcesIfNeeded();
-            DepositePheramone();
-            
+            DepositePheramone();    
         }
         
         ManageHealth();
@@ -178,9 +183,6 @@ public class Ant : MonoBehaviour
 
     #region Methods
 
-    
-
-
     public void InitializeQueen()
     {
         MeshRenderer meshRenderer = transform.Find("ant_blk").GetComponent<MeshRenderer>();
@@ -204,12 +206,12 @@ public class Ant : MonoBehaviour
             if (receivingAnt != null)
             {
                 if (receivingAnt == this) continue;
-                Debug.Log(this.name + " found " + hitCollider.name + " near by");
+                //Debug.Log(this.name + " found " + hitCollider.name + " near by");
                 transform.position = receivingAnt.transform.position;
                 return;
             }
         }
-        transform.position = movablePositions.Values.ElementAt(RNG.Next(3));
+        transform.position = movablePositions.Values.ElementAt(RNG.Next(System.Math.Min(movablePositions.Count, 3)));
     }
 
     /// <summary>
@@ -231,7 +233,7 @@ public class Ant : MonoBehaviour
             }
         }
 
-        transform.position = movablePositions.Values.ElementAt(RNG.Next(2));
+        transform.position = movablePositions.Values.ElementAt(RNG.Next(System.Math.Min(movablePositions.Count, 2)));
     }
 
     private void MoveToTarget()
@@ -241,28 +243,22 @@ public class Ant : MonoBehaviour
         {
             Dig();
         }
-        foreach(var pos in movablePositions)
-        {
-            //Debug.Log(pos.Key.queenScent);
-        }
 
         if (movablePositions.Count > 0)
         {
-            if (target == "food")
+            if (hungry)
             {
                 // select from positions farthest from nest with highest pheromones
                 movablePositions.OrderBy(i => i.Key.queenScent).Take(movablePositions.Count / 2).OrderBy(i => i.Key.pheromone).Take(2);
                 transform.position = movablePositions.Values.ElementAt(RNG.Next(movablePositions.Count));
+                return;
             }
-            else if (target == "queen")
-            {
-                movablePositions.OrderByDescending(i => i.Key.queenScent);
-                if (jobType == 1)
-                    MoveToQueen(movablePositions);
-                else if (jobType == 2) 
-                    MoveToAnt(movablePositions);
-                
-            } 
+
+            movablePositions.OrderByDescending(i => i.Key.queenScent);
+            if (role == 1)
+                MoveToQueen(movablePositions);
+            else if (role == 2) 
+                MoveToAnt(movablePositions);
         }
     }
     
@@ -273,19 +269,22 @@ public class Ant : MonoBehaviour
         else 
             health -= healthReduction;
 
-        if (health < healthThreshold && !isQueen) 
-            target = "food";
+        if (health <= healthThreshold && !isQueen) 
+            hungry = true;
 
         UpdateHealthBar();
     }
 
     // Method for ant to give health to another ant
+    // assume that health is above threshold
     public void GiveHealth()
     {
+        // find ants occupying same space
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, 0.3f);
         foreach (var hitCollider in hitColliders)
         {
-            var amountToGive = health - healthThreshold;
+            // ants can only give health in access of healthThreshold + (healthThreshold / 5)
+            var amountToGive = health - (healthThreshold + (healthThreshold / 5));
             if (amountToGive <= 0) return;
 
             Ant receivingAnt = hitCollider.GetComponent<Ant>();
@@ -293,19 +292,23 @@ public class Ant : MonoBehaviour
             {
                 if (receivingAnt == this) continue;
 
+                // if nest builder only give enegry to ants other than the queen if ant is hungry)
+                if (!receivingAnt.isQueen && !receivingAnt.hungry && role == 2) continue;
+
                 var amountNeeded = receivingAnt.maxHealth - receivingAnt.health;
 
+                // don't gove health to ants who don't need it
                 if (amountNeeded <= 0) continue;
                 
                 if (amountNeeded > amountToGive)
                 {
-                    Debug.Log(this.name + " giving " + hitCollider.name +" "+ amountToGive);
+                    Debug.Log(this.name + this.role.ToString() + " giving " + hitCollider.name + this.role.ToString() + " " + amountToGive);
                     health -= amountToGive;
                     receivingAnt.ReceiveHealth(amountToGive);
                 } 
                 else
                 {
-                    Debug.Log(this.name + " giving " + hitCollider.name + " " + amountNeeded);
+                    Debug.Log(this.name + this.role.ToString() + " giving " + hitCollider.name + this.role.ToString() + " " + amountNeeded);
                     health -= amountNeeded;
                     receivingAnt.ReceiveHealth(amountNeeded);
                 }
@@ -318,31 +321,15 @@ public class Ant : MonoBehaviour
     {
         health += amount;
 
-        Debug.Log("GOT HEALTH");
+        //Debug.Log(this.name + " GOT HEALTH");
 
-        if (!isQueen && target == "food" && health >= healthThreshold) 
-            target = "queen";
+        if (!isQueen && hungry && health >= healthThreshold) 
+            hungry = false;
     }
 
     #endregion
 
     #region Helpers
-
-    /// <summary>
-    /// Toggle the visibility of the ants health bar
-    /// </summary>
-    private void SetHealthBarVisibility()
-    {
-        if (!ConfigurationManager.Instance.Show_Health)
-        {
-            GameObject healthBar = transform.Find("HealthBar").gameObject;
-
-            if (healthBar != null) 
-                healthBar.SetActive(false);
-            else 
-                Debug.LogError("HealthBar object not found");
-        }
-    }
 
     private AbstractBlock GetBlockBelow()
     {
@@ -394,6 +381,22 @@ public class Ant : MonoBehaviour
         }
 
         return movableBlocks;
+    }
+
+    /// <summary>
+    /// Toggle the visibility of the ants health bar
+    /// </summary>
+    private void SetHealthBarVisibility()
+    {
+        if (!ConfigurationManager.Instance.Show_Health)
+        {
+            GameObject healthBar = transform.Find("HealthBar").gameObject;
+
+            if (healthBar != null)
+                healthBar.SetActive(false);
+            else
+                Debug.LogError("HealthBar object not found");
+        }
     }
 
     private void UpdateHealthBar()
