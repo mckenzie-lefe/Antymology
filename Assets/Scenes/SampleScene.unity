@@ -372,7 +372,17 @@ MonoBehaviour:
   antPrefab: {fileID: 1178239252975354886, guid: 2257865b571c64440b7cd2afe284510b,
     type: 3}
   blockMaterial: {fileID: 2100000, guid: 4db9d8fce1a69b74f81daf1375c9ed88, type: 2}
+  Current_Generation:
+    ID: 0
+    Ant_Population: 0
+    Starting_Ant_Health: 0
+    Max_Ant_Health: 0
+    Max_Queen_Health: 0
+    Step_Health_Reduction: 0
+    Pheromone_Evaperation_Rate: 0
+    Nest_Blocks: 0
   Ants: []
+  Queen: {fileID: 0}
 --- !u!4 &964896558
 Transform:
   m_ObjectHideFlags: 0
@@ -409,9 +419,11 @@ MonoBehaviour:
   Acidic_Region_Radius: 5
   Number_Of_Conatiner_Spheres: 5
   Conatiner_Sphere_Radius: 10
-  Ant_Population: 200
-  Starting_Ant_Health: 200
-  Show_Health: 0
+  Number_Of_Starting_Generations: 5
+  Min_Starting_Ants: 5
+  Max_Starting_Ants: 600
+  Max_Ant_Health: 200
+  Show_Health: 1
 --- !u!850595691 &1600700197
 LightingSettings:
   m_ObjectHideFlags: 0

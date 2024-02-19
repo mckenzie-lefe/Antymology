@@ -13,7 +13,7 @@ public class Ant : MonoBehaviour
     /// <summary>
     /// 
     /// </summary>
-    private string target = "food"; 
+    private string target; 
 
     /// <summary>
     /// Boolean indicating Queen ant status
@@ -54,6 +54,11 @@ public class Ant : MonoBehaviour
         health = WorldManager.Instance.Current_Generation.Starting_Ant_Health;
         healthReduction = WorldManager.Instance.Current_Generation.Step_Health_Reduction;
         healthThreshold = maxHealth / 3;
+
+        if (health > healthThreshold)
+            target = "queen";
+        else
+            target = "food";
 
         if (isQueen)
             InitializeQueen();
@@ -171,13 +176,15 @@ public class Ant : MonoBehaviour
 
     #region Methods
 
+    
+
+
     public void InitializeQueen()
     {
         MeshRenderer meshRenderer = transform.Find("ant_blk").GetComponent<MeshRenderer>();
         if (meshRenderer != null)
         {
             meshRenderer.material = queenMaterial;
-            Debug.Log("QUEEN");
         }
         else
         {
@@ -186,12 +193,36 @@ public class Ant : MonoBehaviour
         maxHealth = WorldManager.Instance.Current_Generation.Max_Queen_Health;
     }
     
+    private bool MoveToAnt()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 1.3f);
+        foreach (var hitCollider in hitColliders)
+        {
+            Ant receivingAnt = hitCollider.gameObject.GetComponent<Ant>();
+            if (receivingAnt != null)
+            {
+                if (receivingAnt == this) continue;
+                Debug.Log(this.name + " found " + hitCollider.name + " near by");
+                transform.position = receivingAnt.transform.position;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+
     private void MoveToTarget()
     {
         Dictionary<AirBlock, Vector3> movablePositions = FindMovableAdjacentBlocks();
         if (movablePositions.Count == 0)
         {
             Dig();
+        }
+        foreach(var pos in movablePositions)
+        {
+            //Debug.Log(pos.Key.queenScent);
         }
 
         if (movablePositions.Count > 0)
@@ -205,11 +236,16 @@ public class Ant : MonoBehaviour
             }
             else if (target == "queen")
             {
-                // select from 3 closes positions to queen
-                movablePositions.OrderByDescending(i => i.Key.queenScent).Take(3);
-            }
+                movablePositions.OrderByDescending(i => i.Key.queenScent);
+                if (MoveToAnt())
+                    return;
 
-            transform.position = movablePositions.Values.ElementAt(RNG.Next(movablePositions.Count));
+                // select from 3 closes positions to queen
+                movablePositions.Take(3);
+            }
+            var r = RNG.Next(movablePositions.Count);
+            //Debug.Log("Moving to: " + movablePositions.Keys.ElementAt(0).queenScent);
+            transform.position = movablePositions.Values.ElementAt(0);
         }
     }
     
@@ -228,8 +264,8 @@ public class Ant : MonoBehaviour
 
     // Method for ant to give health to another ant
     public void GiveHealth()
-    {   
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 0.1f);
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 0.3f);
         foreach (var hitCollider in hitColliders)
         {
             var amountToGive = health - healthThreshold;
@@ -238,16 +274,23 @@ public class Ant : MonoBehaviour
             Ant receivingAnt = hitCollider.GetComponent<Ant>();
             if (receivingAnt != null)
             {
+                if (receivingAnt == this) continue;
+
                 var amountNeeded = receivingAnt.maxHealth - receivingAnt.health;
+
+                if (amountNeeded <= 0) continue;
+                
                 if (amountNeeded > amountToGive)
                 {
-                    health -= amountNeeded;
-                    receivingAnt.ReceiveHealth(amountNeeded);
+                    Debug.Log(this.name + " giving " + hitCollider.name +" "+ amountToGive);
+                    health -= amountToGive;
+                    receivingAnt.ReceiveHealth(amountToGive);
                 } 
                 else
                 {
-                    health -= amountToGive;
-                    receivingAnt.ReceiveHealth(amountToGive);
+                    Debug.Log(this.name + " giving " + hitCollider.name + " " + amountNeeded);
+                    health -= amountNeeded;
+                    receivingAnt.ReceiveHealth(amountNeeded);
                 }
             }
         }  

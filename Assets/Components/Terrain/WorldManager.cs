@@ -63,7 +63,7 @@ namespace Antymology.Terrain
         /// </summary>
         void Awake()
         {
-            Debug.Log(Application.persistentDataPath);
+            Debug.Log("Generation data saved will be saved to " + Application.persistentDataPath);
             // Generate new random number generator
             RNG = new System.Random(ConfigurationManager.Instance.Seed);
 
@@ -85,12 +85,8 @@ namespace Antymology.Terrain
             Ants = new List<Ant>();
 
             Generations = new List<Generation>();
-            foreach (var file in System.IO.Directory.GetFiles(Application.persistentDataPath, "*.json"))
-            {
-                string json = System.IO.File.ReadAllText(file);
-                Generation data = JsonUtility.FromJson<Generation>(json);
-                Generations.Add(data);
-            }
+            if (ConfigurationManager.Instance.Use_Generation_Data)
+                Load_Generation_Data();
         }
 
         /// <summary>
@@ -105,28 +101,84 @@ namespace Antymology.Terrain
             Camera.main.transform.LookAt(new Vector3(Blocks.GetLength(0), 0, Blocks.GetLength(2)));
 
             CreateGenerationConfiguration();
-            GenerateAnts();
+            test();
+            //GenerateAnts();
             StartCoroutine(TimeStepUpdate());
         }
-
 
         private IEnumerator TimeStepUpdate()
         {
             while (true)
             {
                 // Wait for one second
-                yield return new WaitForSeconds(1); 
+                yield return new WaitForSeconds(1);
+                UpdatePhermones();
+                Queen.UpdateAnt();
                 UpdateAnts();
                 if (Queen == null)
                 {
-                    Debug.Log("DONE " + Current_Generation.ID);
-                    string json = JsonUtility.ToJson(Current_Generation);
-                    System.IO.File.WriteAllText(Application.persistentDataPath + "/Generation" + Current_Generation.ID + "Data.json", json);
-                    Start();
+                    End_Evalution_Phase();
                     break;
                 }
-                UpdatePhermones();
+                
             }      
+        }
+
+        private void test()
+        {
+            List<Vector3> spawnLocations = GetSpawnLocations();
+            GameObject antsParent = new GameObject("Ants");
+            var pos = new Vector3(38f, 21.4f, 86.1f);
+            var pos2 = new Vector3(39f, 21.4f, 86.1f);
+            var pos21 = new Vector3(37f, 21.4f, 85.1f);
+            var pos22 = new Vector3(38f, 21.4f, 87.1f);
+            var pos23 = new Vector3(38f, 21.4f, 85.1f);
+            var pos24 = new Vector3(39f, 22.4f, 87.1f);
+            var pos25 = new Vector3(38f, 21.4f, 86.1f);
+            var pos3 = new Vector3(37f, 22.4f, 86.1f);
+
+            GameObject q = Instantiate(antPrefab, pos3, Quaternion.identity) as GameObject;
+            q.transform.SetParent(antsParent.transform, false);
+            Queen = q.GetComponent<Ant>();
+            Queen.isQueen = true;
+            q.name = "Queen";
+
+
+            GameObject antObject = Instantiate(antPrefab, pos, Quaternion.identity) as GameObject;
+            antObject.transform.SetParent(antsParent.transform, false);
+            antObject.name = "one";
+            Ants.Add(antObject.GetComponent<Ant>());
+            GameObject antObject2 = Instantiate(antPrefab, pos2, Quaternion.identity) as GameObject;
+            antObject2.transform.SetParent(antsParent.transform, false);
+            antObject2.name = "two";
+            Ants.Add(antObject2.GetComponent<Ant>());
+            GameObject antObject21 = Instantiate(antPrefab, pos21, Quaternion.identity) as GameObject;
+            antObject21.transform.SetParent(antsParent.transform, false);
+            antObject21.name = "21";
+            Ants.Add(antObject2.GetComponent<Ant>());
+            GameObject antObject22 = Instantiate(antPrefab, pos22, Quaternion.identity) as GameObject;
+            antObject22.transform.SetParent(antsParent.transform, false);
+            antObject22.name = "22";
+            GameObject antObject23 = Instantiate(antPrefab, pos23, Quaternion.identity) as GameObject;
+            antObject23.transform.SetParent(antsParent.transform, false);
+            antObject23.name = "23";
+            GameObject antObject24 = Instantiate(antPrefab, pos24, Quaternion.identity) as GameObject;
+            antObject24.transform.SetParent(antsParent.transform, false);
+            antObject24.name = "24";
+            GameObject antObject25 = Instantiate(antPrefab, pos25, Quaternion.identity) as GameObject;
+            antObject25.transform.SetParent(antsParent.transform, false);
+            antObject25.name = "25";
+            Ants.Add(antObject2.GetComponent<Ant>());
+
+            Collider[] hitColliders = Physics.OverlapSphere(pos, 1.3f);
+            foreach (var hitCollider in hitColliders)
+            {
+                Ant receivingAnt = hitCollider.gameObject.GetComponent<Ant>();
+                if (receivingAnt != null)
+                {
+                    Debug.Log("pos hit collider " + hitCollider.name);
+                }
+            }
         }
 
         private void UpdatePhermones()
@@ -202,118 +254,48 @@ namespace Antymology.Terrain
             return neighbours.ToArray();
         }
 
-        /// <summary>
-        /// TO BE IMPLEMENTED BY YOU
-        /// </summary>
-        private void GenerateAnts()
-        {
-            GameObject antsParent = new GameObject("Ants");
-            List<Vector3> spawnLocations = GetSpawnLocations();
-
-            // Create Queen
-            SpawnAnt(spawnLocations, antsParent, true);
-
-            // Loop through the desired number of ants to generate 
-            for (int i = 0; i < Current_Generation.Ant_Population - 1; i++)
-            {
-                if (spawnLocations.Count == 0)
-                {
-                    Debug.LogError("No location found for spawning ants.");
-                    continue;
-                }
-
-                SpawnAnt(spawnLocations, antsParent);
-
-                // TO DO setup for the ant can go here (e.g., assigning roles, initial resources, etc.)
-            }
-        }
-
-        private void SpawnAnt(List<Vector3> locations, GameObject antsParent, bool isQueen = false)
-        {
-            // Select a random index from the list of grass top positions
-            int randomIndex = RNG.Next(locations.Count);
-
-            // Instantiate the ant prefab at the determined location
-            GameObject antObject = Instantiate(antPrefab, locations[randomIndex], Quaternion.identity) as GameObject;
-            if (isQueen)
-            {
-                Queen = antObject.GetComponent<Ant>();
-                Queen.isQueen = true;
-                antObject.name = "Queen";
-
-            } else
-            {
-                antObject.transform.SetParent(antsParent.transform, false);
-            }
-            locations.RemoveAt(randomIndex);
-            Ants.Add(antObject.GetComponent<Ant>());
-        }
-
-
-        private void CreateGenerationConfiguration() 
-        {
-            Generation gen;
-            if (Generations.Count < ConfigurationManager.Instance.Number_Of_Starting_Generations)
-            {
-                gen = new Generation();
-                gen.RandomInitialization();
-            }
-            else
-            {
-                Generations.OrderByDescending(i => i.Nest_Blocks);
-                gen = new Generation(Generations[1], Generations[2]);
-            }
-
-            Generations.Add(gen);
-            gen.ID = Generations.Count;
-            gen.PrintConfiguration();
-            Current_Generation = gen;
-        }
-
         #endregion
 
         #region Methods
 
         private void ResetSimulation()
         {
-            
-        }
 
-        /// <summary>
-        /// Finds all topmost blocks that are not container or airblock blocks. i.e. possible spawn locations
-        /// </summary>
-        /// <returns>A list of Vector3 positions for the topmost non-container blocks.</returns>
-        public List<Vector3> GetSpawnLocations()
-        {
-            List<Vector3> topmostBlocks = new List<Vector3>();
-
-            // Iterate over each column in the world.
-            for (int x = 0; x < Blocks.GetLength(0); x++)
+            foreach (var chunk in Chunks)
             {
-                for (int z = 0; z < Blocks.GetLength(2); z++)
-                {
-                    // Start from the top of the column and search downwards.
-                    for (int y = Blocks.GetLength(1) - 1; y >= 0; y--)
-                    {
-                        AbstractBlock currentBlock = Blocks[x, y, z];
-
-                        // Check if the current block is not a ContainerBlock OR AirBlock.
-                        if (!(currentBlock is ContainerBlock) && currentBlock.isVisible())
-                        {
-                            // If the block above is an AirBlock, it means we have found the topmost block.
-                            if (y == Blocks.GetLength(1) - 1 || Blocks[x, y + 1, z] is AirBlock)
-                            {
-                                topmostBlocks.Add(new Vector3(x, (float)(y + 0.4), (float)(z + 0.1)));
-                            }
-
-                            // Break the loop after finding the topmost block for this column.
-                            break;
-                        }
-                    }
-                }
+                Destroy(chunk);
             }
 
-            return topmostBlocks;
+            foreach (var ant in Ants)
+            {
+                Destroy(ant);
+            }
+
+            // Initialize a new 3D array of blocks with size of the number of chunks times the size of each chunk
+            Blocks = new AbstractBlock[
+                ConfigurationManager.Instance.World_Diameter * ConfigurationManager.Instance.Chunk_Diameter,
+                ConfigurationManager.Instance.World_Height * ConfigurationManager.Instance.Chunk_Diameter,
+                ConfigurationManager.Instance.World_Diameter * ConfigurationManager.Instance.Chunk_Diameter];
+
+            // Initialize a new 3D array of chunks with size of the number of chunks
+            Chunks = new Chunk[
+                ConfigurationManager.Instance.World_Diameter,
+                ConfigurationManager.Instance.World_Height,
+                ConfigurationManager.Instance.World_Diameter];
+
+            Ants = new List<Ant>();
+
+            GenerateData();
+            GenerateChunks();
+
+            Camera.main.transform.position = new Vector3(0 / 2, Blocks.GetLength(1), 0);
+            Camera.main.transform.LookAt(new Vector3(Blocks.GetLength(0), 0, Blocks.GetLength(2)));
+
+            Debug.Log("Starting generation " + Current_Generation.ID);
+            CreateGenerationConfiguration();
+            GenerateAnts();
+            StartCoroutine(TimeStepUpdate());
+
         }
 
         /// <summary>
@@ -443,8 +425,130 @@ namespace Antymology.Terrain
         #region Helpers
 
         #region Ants
+        private void Load_Generation_Data()
+        {
+            foreach (var file in System.IO.Directory.GetFiles(Application.persistentDataPath, "*.json"))
+            {
+                string json = System.IO.File.ReadAllText(file);
+                Generation data = JsonUtility.FromJson<Generation>(json);
+                Generations.Add(data);
+            }
+        }
 
-        
+        /// <summary>
+        /// TO BE IMPLEMENTED BY YOU
+        /// </summary>
+        private void GenerateAnts()
+        {
+            GameObject antsParent = new GameObject("Ants");
+            List<Vector3> spawnLocations = GetSpawnLocations();
+
+            // Create Queen
+            SpawnAnt(spawnLocations, antsParent, true);
+
+            // Loop through the desired number of ants to generate 
+            for (int i = 0; i < Current_Generation.Ant_Population - 1; i++)
+            {
+                if (spawnLocations.Count == 0)
+                {
+                    Debug.LogError("No location found for spawning ants.");
+                    continue;
+                }
+
+                SpawnAnt(spawnLocations, antsParent);
+
+                // TO DO setup for the ant can go here (e.g., assigning roles, initial resources, etc.)
+            }
+        }
+
+        private void CreateGenerationConfiguration()
+        {
+            Generation gen;
+            if (Generations.Count < ConfigurationManager.Instance.Number_Of_Starting_Generations)
+            {
+                gen = new Generation();
+                gen.RandomInitialization();
+            }
+            else
+            {
+                Generations.OrderByDescending(i => i.Nest_Blocks);
+                gen = new Generation(Generations[1], Generations[2]);
+            }
+
+            Generations.Add(gen);
+            gen.ID = Generations.Count;
+            gen.PrintConfiguration();
+            Current_Generation = gen;
+        }
+
+        /// <summary>
+        /// Finds all topmost blocks that are not container or airblock blocks. i.e. possible spawn locations
+        /// </summary>
+        /// <returns>A list of Vector3 positions for the topmost non-container blocks.</returns>
+        public List<Vector3> GetSpawnLocations()
+        {
+            List<Vector3> topmostBlocks = new List<Vector3>();
+
+            // Iterate over each column in the world.
+            for (int x = 0; x < Blocks.GetLength(0); x++)
+            {
+                for (int z = 0; z < Blocks.GetLength(2); z++)
+                {
+                    // Start from the top of the column and search downwards.
+                    for (int y = Blocks.GetLength(1) - 1; y >= 0; y--)
+                    {
+                        AbstractBlock currentBlock = Blocks[x, y, z];
+
+                        // Check if the current block is not a ContainerBlock OR AirBlock.
+                        if (!(currentBlock is ContainerBlock) && currentBlock.isVisible())
+                        {
+                            // If the block above is an AirBlock, it means we have found the topmost block.
+                            if (y == Blocks.GetLength(1) - 1 || Blocks[x, y + 1, z] is AirBlock)
+                            {
+                                topmostBlocks.Add(new Vector3(x, (float)(y + 0.4), (float)(z + 0.1)));
+                            }
+
+                            // Break the loop after finding the topmost block for this column.
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return topmostBlocks;
+        }
+
+        private void SpawnAnt(List<Vector3> locations, GameObject antsParent, bool isQueen = false)
+        {
+            // Select a random index from the list of grass top positions
+            int randomIndex = RNG.Next(locations.Count);
+
+            // Instantiate the ant prefab at the determined location
+            GameObject antObject = Instantiate(antPrefab, locations[randomIndex], Quaternion.identity) as GameObject;
+            if (isQueen)
+            {
+                Queen = antObject.GetComponent<Ant>();
+                Queen.isQueen = true;
+                antObject.name = "Queen";
+
+            }
+            else
+            {
+                antObject.transform.SetParent(antsParent.transform, false);
+                Ants.Add(antObject.GetComponent<Ant>());
+            }
+            locations.RemoveAt(randomIndex);
+            
+        }
+
+        private void End_Evalution_Phase()
+        {
+            Debug.Log("DONE " + Current_Generation.ID + ", NESTBLOCKS=" + Current_Generation.Nest_Blocks);
+            string json = JsonUtility.ToJson(Current_Generation);
+            System.IO.File.WriteAllText(Application.persistentDataPath + "/Generation" + Current_Generation.ID + "Data.json", json);
+            ResetSimulation();
+        }
+
         #endregion
 
         #region Blocks
@@ -511,7 +615,6 @@ namespace Antymology.Terrain
         /// <summary>
         /// Alters a pre-generated map so that acid blocks exist.
         /// </summary>
-
 
         private void GenerateAcidicRegions()
         {

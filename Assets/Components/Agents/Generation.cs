@@ -52,9 +52,11 @@ namespace Assets.Components.Agents
         {
             Nest_Blocks = 0;
         }
+
         public void RandomInitialization()
         {
             System.Random rng = new System.Random();
+            Nest_Blocks = 0;
             Ant_Population = rng.Next(ConfigurationManager.Instance.Min_Starting_Ants, ConfigurationManager.Instance.Max_Starting_Ants);
             Starting_Ant_Health = rng.Next(10, ConfigurationManager.Instance.Max_Ant_Health);
             Max_Ant_Health = Max_Queen_Health = rng.Next(30, ConfigurationManager.Instance.Max_Ant_Health);
@@ -65,17 +67,23 @@ namespace Assets.Components.Agents
 
         public Generation(Generation g1, Generation g2)
         {
-
+            Nest_Blocks = 0;
+            Step_Health_Reduction = 5;
+            Ant_Population = g1.Ant_Population;
+            Starting_Ant_Health = g2.Ant_Population;
+            Max_Ant_Health = g2.Max_Ant_Health;
+            Max_Queen_Health = g2.Max_Queen_Health;
+            Pheromone_Evaperation_Rate = g1.Pheromone_Evaperation_Rate;
         }
 
         public void PrintConfiguration()
         {
-            Debug.Log("Ant_Population=" + Ant_Population);
-            Debug.Log("Starting_Ant_Health=" + Starting_Ant_Health);
-            Debug.Log("Max_Ant_Health=" + Max_Ant_Health);
-            Debug.Log("Max_Queen_Health=" + Max_Queen_Health);
-            Debug.Log("Step_Health_Reduction=" + Step_Health_Reduction);
-            Debug.Log("Pheromone_Evaperation_Rate=" + Pheromone_Evaperation_Rate);
+            Debug.Log("Ant_Population=" + Ant_Population + "\n" +
+                "Starting_Ant_Health=" + Starting_Ant_Health + "\n" +
+                "Max_Ant_Health=" + Max_Ant_Health + "\n" +
+                "Max_Queen_Health=" + Max_Queen_Health + "\n" +
+                "Step_Health_Reduction=" + Step_Health_Reduction + "\n" + 
+                "Pheromone_Evaperation_Rate=" + Pheromone_Evaperation_Rate);
         }
     }
 }

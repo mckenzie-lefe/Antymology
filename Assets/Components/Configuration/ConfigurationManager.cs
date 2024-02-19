@@ -78,4 +78,10 @@ public class ConfigurationManager : Singleton<ConfigurationManager>
     /// Show ants health bars
     /// </summary>
     public bool Show_Health = true;
+
+
+    /// <summary>
+    /// Load ant generation data from pervious program runs
+    /// </summary>
+    public bool Use_Generation_Data = true;
 }
