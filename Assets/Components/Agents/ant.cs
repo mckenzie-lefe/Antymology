@@ -13,7 +13,9 @@ public class Ant : MonoBehaviour
     /// <summary>
     /// 
     /// </summary>
-    private string target; 
+    private string target;
+
+    private int jobType;
 
     /// <summary>
     /// Boolean indicating Queen ant status
@@ -193,7 +195,7 @@ public class Ant : MonoBehaviour
         maxHealth = WorldManager.Instance.Current_Generation.Max_Queen_Health;
     }
     
-    private bool MoveToAnt()
+    private void MoveToAnt(Dictionary<AirBlock, Vector3> movablePositions)
     {
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, 1.3f);
         foreach (var hitCollider in hitColliders)
@@ -204,14 +206,33 @@ public class Ant : MonoBehaviour
                 if (receivingAnt == this) continue;
                 Debug.Log(this.name + " found " + hitCollider.name + " near by");
                 transform.position = receivingAnt.transform.position;
-                return true;
+                return;
+            }
+        }
+        transform.position = movablePositions.Values.ElementAt(RNG.Next(3));
+    }
+
+    /// <summary>
+    /// assume not queen
+    /// </summary>
+    private void MoveToQueen(Dictionary<AirBlock, Vector3> movablePositions)
+    {
+        
+        Collider[] hitColliders = Physics.OverlapSphere(movablePositions.Values.ElementAt(0), 0.3f);
+        foreach (var hitCollider in hitColliders)
+        {
+            Ant receivingAnt = hitCollider.gameObject.GetComponent<Ant>();
+            if (receivingAnt != null && receivingAnt.isQueen)
+            {
+                Debug.Log(this.name + " moving to " + hitCollider.name);
+                Debug.Log("queenScent="+movablePositions.Keys.ElementAt(0).queenScent);
+                transform.position = receivingAnt.transform.position;
+                return;
             }
         }
 
-        return false;
+        transform.position = movablePositions.Values.ElementAt(RNG.Next(2));
     }
-
-
 
     private void MoveToTarget()
     {
@@ -227,25 +248,21 @@ public class Ant : MonoBehaviour
 
         if (movablePositions.Count > 0)
         {
-            movablePositions.OrderBy(i => i.Key.queenScent);
-
             if (target == "food")
             {
                 // select from positions farthest from nest with highest pheromones
                 movablePositions.OrderBy(i => i.Key.queenScent).Take(movablePositions.Count / 2).OrderBy(i => i.Key.pheromone).Take(2);
+                transform.position = movablePositions.Values.ElementAt(RNG.Next(movablePositions.Count));
             }
             else if (target == "queen")
             {
                 movablePositions.OrderByDescending(i => i.Key.queenScent);
-                if (MoveToAnt())
-                    return;
-
-                // select from 3 closes positions to queen
-                movablePositions.Take(3);
-            }
-            var r = RNG.Next(movablePositions.Count);
-            //Debug.Log("Moving to: " + movablePositions.Keys.ElementAt(0).queenScent);
-            transform.position = movablePositions.Values.ElementAt(0);
+                if (jobType == 1)
+                    MoveToQueen(movablePositions);
+                else if (jobType == 2) 
+                    MoveToAnt(movablePositions);
+                
+            } 
         }
     }
     
