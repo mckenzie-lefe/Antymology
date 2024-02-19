@@ -114,16 +114,22 @@ namespace Antymology.Terrain
 
             // Clear whatever data was in the mesh previously
             mesh.Clear();
-
-            // Add in newly calculated values
-            mesh.vertices = vertices.ToArray();
-            mesh.triangles = triangles.ToArray();
-            mesh.uv = uvs.ToArray();
-
-            // Optimize, and normal calculation
-            MeshUtility.Optimize(mesh);
-            mesh.RecalculateNormals();
-            collider.sharedMesh = mesh;
+           
+            try
+            {
+                // Add in newly calculated values
+                mesh.vertices = vertices.ToArray();
+                mesh.triangles = triangles.ToArray();
+                mesh.uv = uvs.ToArray();
+                // Optimize, and normal calculation
+                MeshUtility.Optimize(mesh);
+                mesh.RecalculateNormals();
+                collider.sharedMesh = mesh;
+            } catch (Exception ex)
+            {
+                Debug.LogWarning("Chunks: " + ex.ToString());
+            }
+            
         }
 
         #endregion
@@ -318,8 +324,15 @@ namespace Antymology.Terrain
             // If we need to update ou mesh, then do so now.
             if (updateNeeded)
             {
-                GenerateMesh();
-                updateNeeded = false;
+                try
+                {
+                    GenerateMesh();
+                    updateNeeded = false;
+                } catch (Exception ex)
+                {
+                    Debug.LogWarning("LateUpdate: " + ex.ToString());
+                }
+                
             }
         }
 

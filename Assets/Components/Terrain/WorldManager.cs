@@ -24,6 +24,11 @@ namespace Antymology.Terrain
         public Material blockMaterial;
 
         /// <summary>
+        /// Tracks the current generation of simulation.
+        /// </summary>
+        public Generation Current_Generation;
+
+        /// <summary>
         /// The raw data of the underlying world structure.
         /// </summary>
         private AbstractBlock[,,] Blocks;
@@ -43,16 +48,20 @@ namespace Antymology.Terrain
         /// </summary>
         private SimplexNoise SimplexNoise;
 
+        /// <summary>
+        /// List of generation data.
+        /// </summary>
         private List<Generation> Generations;
 
-        public Generation Current_Generation;
+        /// <summary>
+        /// List of ants in the world.
+        /// </summary>
+        private List<Ant> Ants;
 
         /// <summary>
-        /// References to ants in world
+        /// Reference to the queen ant.
         /// </summary>
-        public List<Ant> Ants;
-
-        public Ant Queen;
+        private Ant Queen;
 
         #endregion
 
@@ -106,6 +115,9 @@ namespace Antymology.Terrain
             StartCoroutine(TimeStepUpdate());
         }
 
+        /// <summary>
+        /// Coroutine for simulating time steps in the world.
+        /// </summary>
         private IEnumerator TimeStepUpdate()
         {
             while (true)
@@ -180,126 +192,9 @@ namespace Antymology.Terrain
             }
         }
 
-        private void UpdatePhermones()
-        {
-            // Iterate through all blocks in the world
-            for (int x = 0; x < Blocks.GetLength(0); x++)
-            {
-                for (int y = 0; y < Blocks.GetLength(1); y++)
-                {
-                    for (int z = 0; z < Blocks.GetLength(2); z++)
-                    {
-                        // Check if the block is an AirBlock
-                        AirBlock airBlock = Blocks[x, y, z] as AirBlock;
-                        if (airBlock != null)
-                        {
-                            AirBlock[] neighbours = GetNeighbouringAirBlocks(x, y, z);
-
-                            airBlock.DiffuseFoodPheromone(neighbours);
-                            airBlock.EvaporatePheromone();
-
-                            float distance = Vector3.Distance(Queen.transform.position, new Vector3(x, y, z));
-                            airBlock.queenScent = 100.0 / (1 + distance);
-                        }
-                        
-                    }
-                }
-            }
-        }
-
-        private void UpdateAnts()
-        {
-            Ants.RemoveAll(item => item == null);
-            foreach (var ant in Ants)
-            { 
-                ant.UpdateAnt();
-            }
-                   
-        }
-
-        public AirBlock[] GetNeighbouringAirBlocks(int x, int y, int z)
-        {
-            List<AirBlock> neighbours = new List<AirBlock>();
-
-            // Iterate through all neighboring positions including diagonals in 3D
-            for (int offsetX = -1; offsetX <= 1; offsetX++)
-            {
-                for (int offsetY = -1; offsetY <= 1; offsetY++)
-                {
-                    for (int offsetZ = -1; offsetZ <= 1; offsetZ++)
-                    {
-                        // Skip the current block (no offset)
-                        if (offsetX == 0 && offsetY == 0 && offsetZ == 0) continue;
-
-                        int neighbourX = x + offsetX;
-                        int neighbourY = y + offsetY;
-                        int neighbourZ = z + offsetZ;
-
-                        // Check bounds to ensure indices are within the world array
-                        if (neighbourX >= 0 && neighbourX < Blocks.GetLength(0) &&
-                            neighbourY >= 0 && neighbourY < Blocks.GetLength(1) &&
-                            neighbourZ >= 0 && neighbourZ < Blocks.GetLength(2))
-                        {
-                            AirBlock neighbour = Blocks[neighbourX, neighbourY, neighbourZ] as AirBlock;
-                            if (neighbour != null)
-                            {
-                                neighbours.Add(neighbour);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return neighbours.ToArray();
-        }
-
         #endregion
 
         #region Methods
-
-        private void ResetSimulation()
-        {
-
-            foreach (var chunk in Chunks)
-            {
-                DestroyImmediate(chunk.gameObject);
-            }
-
-            foreach (var ant in Ants)
-            {
-                if(ant != null)
-                    DestroyImmediate(ant.gameObject);
-            }
-
-            DestroyImmediate(GameObject.Find("Chunks"));
-            DestroyImmediate(GameObject.Find("Ants"));
-
-            // Initialize a new 3D array of blocks with size of the number of chunks times the size of each chunk
-            Blocks = new AbstractBlock[
-                ConfigurationManager.Instance.World_Diameter * ConfigurationManager.Instance.Chunk_Diameter,
-                ConfigurationManager.Instance.World_Height * ConfigurationManager.Instance.Chunk_Diameter,
-                ConfigurationManager.Instance.World_Diameter * ConfigurationManager.Instance.Chunk_Diameter];
-
-            // Initialize a new 3D array of chunks with size of the number of chunks
-            Chunks = new Chunk[
-                ConfigurationManager.Instance.World_Diameter,
-                ConfigurationManager.Instance.World_Height,
-                ConfigurationManager.Instance.World_Diameter];
-
-            Ants = new List<Ant>();
-
-            GenerateData();
-            GenerateChunks();
-
-            Camera.main.transform.position = new Vector3(0 / 2, Blocks.GetLength(1), 0);
-            Camera.main.transform.LookAt(new Vector3(Blocks.GetLength(0), 0, Blocks.GetLength(2)));
-
-            Debug.Log("Starting generation " + Current_Generation.ID);
-            CreateGenerationConfiguration();
-            GenerateAnts();
-            StartCoroutine(TimeStepUpdate());
-
-        }
 
         /// <summary>
         /// Retrieves an abstract block type at the desired world coordinates.
@@ -428,6 +323,139 @@ namespace Antymology.Terrain
         #region Helpers
 
         #region Ants
+
+        /// <summary>
+        /// Updates pheromone levels in AirBlocks across the world.
+        /// </summary>
+        private void UpdatePhermones()
+        {
+            // Iterate through all blocks in the world
+            for (int x = 0; x < Blocks.GetLength(0); x++)
+            {
+                for (int y = 0; y < Blocks.GetLength(1); y++)
+                {
+                    for (int z = 0; z < Blocks.GetLength(2); z++)
+                    {
+                        // Check if the block is an AirBlock
+                        AirBlock airBlock = Blocks[x, y, z] as AirBlock;
+                        if (airBlock != null)
+                        {
+                            AirBlock[] neighbours = GetNeighbouringAirBlocks(x, y, z);
+
+                            airBlock.DiffuseFoodPheromone(neighbours);
+                            airBlock.EvaporatePheromone();
+
+                            float distance = Vector3.Distance(Queen.transform.position, new Vector3(x, y, z));
+                            airBlock.queenScent = 100.0 / (1 + distance);
+                        }
+
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates all ants in the world.
+        /// </summary>
+        private void UpdateAnts()
+        {
+            Ants.RemoveAll(item => item == null);
+            foreach (var ant in Ants)
+            {
+                ant.UpdateAnt();
+            }
+
+        }
+
+        /// <summary>
+        /// Retrieves neighboring air blocks for diffusion calculations.
+        /// </summary>
+        private AirBlock[] GetNeighbouringAirBlocks(int x, int y, int z)
+        {
+            List<AirBlock> neighbours = new List<AirBlock>();
+
+            // Iterate through all neighboring positions including diagonals in 3D
+            for (int offsetX = -1; offsetX <= 1; offsetX++)
+            {
+                for (int offsetY = -1; offsetY <= 1; offsetY++)
+                {
+                    for (int offsetZ = -1; offsetZ <= 1; offsetZ++)
+                    {
+                        // Skip the current block (no offset)
+                        if (offsetX == 0 && offsetY == 0 && offsetZ == 0) continue;
+
+                        int neighbourX = x + offsetX;
+                        int neighbourY = y + offsetY;
+                        int neighbourZ = z + offsetZ;
+
+                        // Check bounds to ensure indices are within the world array
+                        if (neighbourX >= 0 && neighbourX < Blocks.GetLength(0) &&
+                            neighbourY >= 0 && neighbourY < Blocks.GetLength(1) &&
+                            neighbourZ >= 0 && neighbourZ < Blocks.GetLength(2))
+                        {
+                            AirBlock neighbour = Blocks[neighbourX, neighbourY, neighbourZ] as AirBlock;
+                            if (neighbour != null)
+                            {
+                                neighbours.Add(neighbour);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return neighbours.ToArray();
+        }
+
+        /// <summary>
+        /// Resets the simulation to an initial start state to simulate new generation.
+        /// </summary>
+        private void ResetSimulation()
+        {
+
+            foreach (var chunk in Chunks)
+            {
+                DestroyImmediate(chunk.gameObject);
+            }
+
+            foreach (var ant in Ants)
+            {
+                if (ant != null)
+                    DestroyImmediate(ant.gameObject);
+            }
+
+            DestroyImmediate(GameObject.Find("Chunks"));
+            DestroyImmediate(GameObject.Find("Ants"));
+
+            // Initialize a new 3D array of blocks with size of the number of chunks times the size of each chunk
+            Blocks = new AbstractBlock[
+                ConfigurationManager.Instance.World_Diameter * ConfigurationManager.Instance.Chunk_Diameter,
+                ConfigurationManager.Instance.World_Height * ConfigurationManager.Instance.Chunk_Diameter,
+                ConfigurationManager.Instance.World_Diameter * ConfigurationManager.Instance.Chunk_Diameter];
+
+            // Initialize a new 3D array of chunks with size of the number of chunks
+            Chunks = new Chunk[
+                ConfigurationManager.Instance.World_Diameter,
+                ConfigurationManager.Instance.World_Height,
+                ConfigurationManager.Instance.World_Diameter];
+
+            Ants = new List<Ant>();
+
+            GenerateData();
+            GenerateChunks();
+
+            Camera.main.transform.position = new Vector3(0 / 2, Blocks.GetLength(1), 0);
+            Camera.main.transform.LookAt(new Vector3(Blocks.GetLength(0), 0, Blocks.GetLength(2)));
+
+            Debug.Log("Starting generation " + Current_Generation.ID);
+            CreateGenerationConfiguration();
+            GenerateAnts();
+            StartCoroutine(TimeStepUpdate());
+
+        }
+
+        /// <summary>
+        /// Loads generation data from persistent storage.
+        /// </summary>
         private void Load_Generation_Data()
         {
             foreach (var file in System.IO.Directory.GetFiles(Application.persistentDataPath, "*.json"))
@@ -439,8 +467,8 @@ namespace Antymology.Terrain
         }
 
         /// <summary>
-        /// 
-        /// With the except of the queen ants are either workers or nest builders
+        /// Generates the ants based on the current generation's configuration.
+        /// All ants with the except of the queen ants are either workers or nest builders
         /// </summary>
         private void GenerateAnts()
         {
@@ -448,9 +476,7 @@ namespace Antymology.Terrain
             List<Vector3> spawnLocations = GetSpawnLocations();
 
             // Create Queen
-            Queen = SpawnAnt(spawnLocations, antsParent);
-            Queen.isQueen = true;
-            Queen.name = "Queen";
+            SpawnAnt(spawnLocations, antsParent, true);
 
             // Loop through the desired number of ants to generate 
             for (int i = 0; i < Current_Generation.Ant_Population - 1; i++)
@@ -469,6 +495,9 @@ namespace Antymology.Terrain
             AssignAntRoles();
         }
 
+        /// <summary>
+        ///  Creates or selects a generation configuration for the simulation.
+        /// </summary>
         private void CreateGenerationConfiguration()
         {
             Generation gen;
@@ -491,7 +520,7 @@ namespace Antymology.Terrain
         }
 
         /// <summary>
-        /// Finds all topmost blocks that are not container or airblock blocks. i.e. possible spawn locations
+        /// Identifies potential spawn locations for ants by finding all topmost blocks that are not container or airblock blocks. i.e. possible spawn locations
         /// </summary>
         /// <returns>A list of Vector3 positions for the topmost non-container blocks.</returns>
         public List<Vector3> GetSpawnLocations()
@@ -527,19 +556,36 @@ namespace Antymology.Terrain
             return topmostBlocks;
         }
 
-        private Ant SpawnAnt(List<Vector3> locations, GameObject antsParent)
+        /// <summary>
+        /// Spawns an ant at a location.
+        /// </summary>
+        private Ant SpawnAnt(List<Vector3> locations, GameObject antsParent, bool queen = false)
         {
             // Select a random index from the list of grass top positions
-            int randomIndex = RNG.Next(locations.Count);
+            System.Random r = new System.Random();
+            int randomIndex = r.Next(locations.Count);
 
             // Instantiate the ant prefab at the determined location
             GameObject antObject = Instantiate(antPrefab, locations[randomIndex], Quaternion.identity) as GameObject;
-            antObject.transform.SetParent(antsParent.transform, false);
+            if (queen)
+            {
+                Queen = antObject.GetComponent<Ant>();
+                Queen.isQueen = true;
+                Queen.name = "Queen";
+            }
+            else
+            {
+                antObject.transform.SetParent(antsParent.transform, false);
+            }
+            
             locations.RemoveAt(randomIndex);
 
             return antObject.GetComponent<Ant>();
         }
 
+        /// <summary>
+        /// Assigns roles to ants based on the current generation's configuration.
+        /// </summary>
         private void AssignAntRoles()
         {
             for (int x = 0; x < Blocks.GetLength(0); x++)
@@ -570,6 +616,9 @@ namespace Antymology.Terrain
             }
         }
 
+        /// <summary>
+        /// Ends the evaluation phase of the current generation, saves data, and resets the simulation.
+        /// </summary>
         private void End_Evalution_Phase()
         {
             Debug.Log("DONE " + Current_Generation.ID + ", NESTBLOCKS=" + Current_Generation.Nest_Blocks);
@@ -644,7 +693,6 @@ namespace Antymology.Terrain
         /// <summary>
         /// Alters a pre-generated map so that acid blocks exist.
         /// </summary>
-
         private void GenerateAcidicRegions()
         {
             for (int i = 0; i < ConfigurationManager.Instance.Number_Of_Acidic_Regions; i++)
