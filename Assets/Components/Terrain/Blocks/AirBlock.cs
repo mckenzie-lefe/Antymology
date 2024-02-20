@@ -20,11 +20,17 @@ namespace Antymology.Terrain
         /// </summary>
         private static bool _isVisible = false;
 
+        public double queenScent = 0.0;
+
+        public double pheromone = 0.0;
+
         /// <summary>
-        /// A dictionary representing the phermone deposits in the air. Each type of phermone gets it's own byte key, and each phermone type has a concentration.
+        /// A dictionary representing the pheromone deposits in the air. Each type of phermone gets it's own byte key, and each phermone type has a concentration.
         /// THIS CURRENTLY ONLY EXISTS AS A WAY OF SHOWING YOU HOW YOU CAN MANIPULATE THE BLOCKS.
         /// </summary>
-        private Dictionary<byte, double> phermoneDeposits;
+        public Dictionary<byte, double> pheromoneDeposits = new Dictionary<byte, double> {
+            { 1, 0.0 }
+        };
 
         #endregion
 
@@ -47,12 +53,40 @@ namespace Antymology.Terrain
         }
 
         /// <summary>
-        /// THIS CURRENTLY ONLY EXISTS AS A WAY OF SHOWING YOU WHATS POSSIBLE.
+        /// Each phermone type diffuses 50% of it value to its neighboring AirBlocks.
         /// </summary>
-        /// <param name="neighbours"></param>
-        public void Diffuse(AbstractBlock[] neighbours)
+        /// <param name="neighbours">Airblocks in radius</param>
+        public void DiffuseFoodPheromone(AirBlock[] neighbours)
         {
-            throw new NotImplementedException();
+            if (pheromoneDeposits[1] > neighbours.Length)
+            {
+                pheromone = pheromone / 2.0;
+                var diffuseAmount = pheromone / neighbours.Length;
+                foreach (AirBlock block in neighbours)
+                {
+                    block.pheromone += diffuseAmount;
+                }
+            }
+        }
+
+        public void DepositPheromone(float amount)
+        {
+            pheromone += amount;
+        }
+
+        public void EvaporatePheromone()
+        {
+            List<byte> keys = new List<byte>(pheromoneDeposits.Keys);
+            foreach (byte key in keys)
+            {
+                if (pheromone < 1.0)
+                {
+                    pheromone = 0.0;
+                    continue;
+                }
+                    
+                pheromone *= (1 - WorldManager.Instance.Current_Generation.Pheromone_Evaperation_Rate); 
+            }
         }
 
         #endregion

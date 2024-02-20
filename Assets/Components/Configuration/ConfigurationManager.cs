@@ -49,4 +49,45 @@ public class ConfigurationManager : Singleton<ConfigurationManager>
     /// The radius of each acidic region
     /// </summary>
     public int Conatiner_Sphere_Radius = 20;
+
+    /// <summary>
+    /// The number of randomly created inital Generations to create before using crossover
+    /// to create new generation.
+    /// </summary>
+    public int Number_Of_Starting_Generations = 5;
+
+    /// <summary>
+    /// Lowest possible starting ant population. 
+    /// Used as lower bound for ant population random number generator
+    /// </summary>
+    public int Min_Starting_Ants = 2;
+
+    /// <summary>
+    /// Highest possible starting ant population. 
+    /// Used as upper bound for ant population random number generator
+    /// </summary>
+    public int Max_Starting_Ants = 600;
+
+    /// <summary>
+    /// Highest possible ant health. 
+    /// Used as upper bound for ant health random number generator
+    /// </summary>
+    public int Max_Ant_Health = 300;
+
+    /// <summary>
+    /// The maximum percentage health that the hungry threshold can be set to for ants
+    /// Ants start looking for food when their health is less than the hungry threshold
+    /// </summary>
+    public int Max_Hungry_Threshold_Percent = 70;
+
+    /// <summary>
+    /// Show ants health bars
+    /// </summary>
+    public bool Show_Health = true;
+
+
+    /// <summary>
+    /// Load ant generation data from pervious program runs
+    /// </summary>
+    public bool Use_Generation_Data = true;
 }
