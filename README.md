@@ -2,7 +2,7 @@
 
 This project aims to simulate the behaviors of ants through a Unity-based environment, drawing inspiration from their real-world capabilities like pathfinding, bridge formation, and nest construction. Leveraging simple rules, the simulation explores how complex emergent behaviors can evolve. The core objective is to develop a species of ant capable of maximizing nest production through an evolutionary algorithm. This involves creating an ecosystem where ants interact with their environment and each other to build the largest possible nest, showcasing the power of evolutionary principles in generating intelligent, adaptive behaviors.
 
-![Ants](Images/Ants.gif)
+![Ants](Images/AntWorld.gif)
 
 ## Features
 - Ants dynamically look for food, dig through terrain, and build nests based on environmental cues.
