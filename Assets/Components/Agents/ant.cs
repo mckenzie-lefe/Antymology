@@ -1,4 +1,5 @@
 using Antymology.Terrain;
+using Antymology.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -393,6 +394,7 @@ public class Ant : MonoBehaviour
                     WorldManager.Instance.SetBlock((int)buildLocations.Values.ElementAt(0).x, (int)buildLocations.Values.ElementAt(0).y, (int)buildLocations.Values.ElementAt(0).z, new NestBlock());
                 }
                 WorldManager.Instance.Current_Generation.Nest_Blocks += 1;
+                WorldManager.Instance.NestBlockCounter.UpdateNestBlocks();
                 health -= maxHealth / 3;
             }
             catch (Exception e)

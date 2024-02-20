@@ -1,4 +1,5 @@
 ﻿using Antymology.Helpers;
+using Antymology.UI;
 using Assets.Components.Agents;
 using System;
 using System.Collections;
@@ -27,6 +28,10 @@ namespace Antymology.Terrain
         /// Tracks the current generation of simulation.
         /// </summary>
         public Generation Current_Generation;
+
+        public GameObject UI;
+
+        public UINestBlocks NestBlockCounter;
 
         /// <summary>
         /// The raw data of the underlying world structure.
@@ -72,6 +77,8 @@ namespace Antymology.Terrain
         /// </summary>
         void Awake()
         {
+            NestBlockCounter = Instantiate(UI).GetComponentInChildren<UINestBlocks>();
+
             Debug.Log("Generation data saved will be saved to " + Application.persistentDataPath);
             // Generate new random number generator
             RNG = new System.Random(ConfigurationManager.Instance.Seed);
