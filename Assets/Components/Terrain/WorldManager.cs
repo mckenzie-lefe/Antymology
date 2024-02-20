@@ -117,7 +117,6 @@ namespace Antymology.Terrain
             Camera.main.transform.LookAt(new Vector3(Blocks.GetLength(0), 0, Blocks.GetLength(2)));
 
             CreateGenerationConfiguration();
-            //test();
             GenerateAnts();
             StartCoroutine(TimeStepUpdate());
         }
@@ -140,63 +139,6 @@ namespace Antymology.Terrain
                 Queen.UpdateAnt();
                 UpdateAnts();
             }      
-        }
-
-        private void test()
-        {
-            List<Vector3> spawnLocations = GetSpawnLocations();
-            GameObject antsParent = new GameObject("Ants");
-            var pos = new Vector3(38f, 21.4f, 86.1f);
-            var pos2 = new Vector3(39f, 21.4f, 86.1f);
-            var pos21 = new Vector3(37f, 21.4f, 85.1f);
-            var pos22 = new Vector3(38f, 21.4f, 87.1f);
-            var pos23 = new Vector3(38f, 21.4f, 85.1f);
-            var pos24 = new Vector3(39f, 22.4f, 87.1f);
-            var pos25 = new Vector3(38f, 21.4f, 86.1f);
-            var pos3 = new Vector3(37f, 22.4f, 86.1f);
-
-            GameObject q = Instantiate(antPrefab, pos3, Quaternion.identity) as GameObject;
-            q.transform.SetParent(antsParent.transform, false);
-            Queen = q.GetComponent<Ant>();
-            Queen.isQueen = true;
-            q.name = "Queen";
-
-
-            GameObject antObject = Instantiate(antPrefab, pos, Quaternion.identity) as GameObject;
-            antObject.transform.SetParent(antsParent.transform, false);
-            antObject.name = "one";
-            Ants.Add(antObject.GetComponent<Ant>());
-            GameObject antObject2 = Instantiate(antPrefab, pos2, Quaternion.identity) as GameObject;
-            antObject2.transform.SetParent(antsParent.transform, false);
-            antObject2.name = "two";
-            Ants.Add(antObject2.GetComponent<Ant>());
-            GameObject antObject21 = Instantiate(antPrefab, pos21, Quaternion.identity) as GameObject;
-            antObject21.transform.SetParent(antsParent.transform, false);
-            antObject21.name = "21";
-            Ants.Add(antObject2.GetComponent<Ant>());
-            GameObject antObject22 = Instantiate(antPrefab, pos22, Quaternion.identity) as GameObject;
-            antObject22.transform.SetParent(antsParent.transform, false);
-            antObject22.name = "22";
-            GameObject antObject23 = Instantiate(antPrefab, pos23, Quaternion.identity) as GameObject;
-            antObject23.transform.SetParent(antsParent.transform, false);
-            antObject23.name = "23";
-            GameObject antObject24 = Instantiate(antPrefab, pos24, Quaternion.identity) as GameObject;
-            antObject24.transform.SetParent(antsParent.transform, false);
-            antObject24.name = "24";
-            GameObject antObject25 = Instantiate(antPrefab, pos25, Quaternion.identity) as GameObject;
-            antObject25.transform.SetParent(antsParent.transform, false);
-            antObject25.name = "25";
-            Ants.Add(antObject2.GetComponent<Ant>());
-
-            Collider[] hitColliders = Physics.OverlapSphere(pos, 1.3f);
-            foreach (var hitCollider in hitColliders)
-            {
-                Ant receivingAnt = hitCollider.gameObject.GetComponent<Ant>();
-                if (receivingAnt != null)
-                {
-                    Debug.Log("pos hit collider " + hitCollider.name);
-                }
-            }
         }
 
         #endregion
@@ -418,7 +360,7 @@ namespace Antymology.Terrain
         /// </summary>
         private void ResetSimulation()
         {
-
+            NestBlockCounter = Instantiate(UI).GetComponentInChildren<UINestBlocks>();
             foreach (var chunk in Chunks)
             {
                 DestroyImmediate(chunk.gameObject);

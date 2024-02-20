@@ -87,10 +87,6 @@ namespace Antymology.Terrain
                     
                 pheromone *= (1 - WorldManager.Instance.Current_Generation.Pheromone_Evaperation_Rate); 
             }
-            //if (pheromoneDeposits[1] != 0.0)
-            //{
-            //    Debug.Log("airblock=" + this.GetHashCode() + " pheromon=" + pheromoneDeposits[1]);
-            //}
         }
 
         #endregion

@@ -310,7 +310,7 @@ public class Ant : MonoBehaviour
         Dictionary<AirBlock, Vector3> movablePositions = FindMovableAdjacentBlocks();
         if (movablePositions.Count == 0)
         {
-            //Dig();
+            Dig();
         }
 
         if (movablePositions.Count > 0)
@@ -368,7 +368,7 @@ public class Ant : MonoBehaviour
     private void Dig()
     {
         // don't want to dig if container block or another ant is on the block
-        if (GetBlockBelow() is not ContainerBlock)
+        if (GetBlockBelow() is not ContainerBlock && !AntAtLocation(transform.position))
         {
             RemoveBlockBelow();
         }

@@ -124,7 +124,8 @@ namespace Antymology.Terrain
                 // Optimize, and normal calculation
                 MeshUtility.Optimize(mesh);
                 mesh.RecalculateNormals();
-                collider.sharedMesh = mesh;
+                if (vertices.Count > 0)
+                    collider.sharedMesh = mesh;
             } catch (Exception ex)
             {
                 Debug.LogWarning("Chunks: " + ex.ToString());

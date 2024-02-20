@@ -45,7 +45,7 @@ An evolutionary algorithm evolves the following ant behaviors over generations, 
 ### Implementation
 - Developed in Unity 2022.3.18f1
 - The codebase is modular, with clear separations between agents, configuration, terrain generation, and UI components.
-- Use of serializable Generations classes for easy configuration of ants and adaptation of simulation parameters.
+- Use of serializable Generations classes for easy configuration of ants and adaptation of simulation parameters. 
 - Implementation of custom algorithms for ant behavior, including foraging logic, health management, and evolutionary strategies.
 - Extensible design allowing for future enhancements, such as additional ant roles or environmental challenges.
 
@@ -67,6 +67,10 @@ Users can navigate the simulation using the camera controls:
 - space : Moves camera on X and Z axis only.  
 
 ## Challenges and Learnings
+
+This was my first time using Unity and I found it to be a challenging learning curve. While the work was engaging I found myself having to continuosly modify my code to adjust to new added logic and components. 
+My biggest challenge has been this "This Mesh Collider is attached to GameObject at path 'Chunks/New Game Object' with Mesh 'New Game Object' in Scene 'SampleScene', but the mesh doesn't have any vertices."
+error I started getting randomly a few days ago. The error does not always happen but it happens often enough. I have not been able to track to what is causing it. I kind of patched it by added some code the Chunks.cs to check vertices before updating mesh but I am not sure if it actually fixed the problem.
 
 ### Future Work
 - Ant Behavior Complexity: Introduce more complex behaviors such as ant specialization based on environmental challenges or nest needs.
