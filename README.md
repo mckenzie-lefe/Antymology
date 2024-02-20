@@ -81,3 +81,6 @@ error I started getting randomly a few days ago. The error does not always happe
 
 The base code for the assignment has been provided by Cooper Davies.
 [GitHub - DaviesCooper/Antymology](https://free3d.com/3d-model/ant-71866.html)
+
+Ant Model from free onlie source.
+[Ant Model](https://free3d.com/3d-model/ant-71866.html)
